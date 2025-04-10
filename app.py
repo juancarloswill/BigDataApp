@@ -63,7 +63,7 @@ def get_collection_data(selected_db):
             client.close()
     return collections_data
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=os.environ.get('PORT', 8080))
+    app.run(debug=True, host='0.0.0.0', port=os.environ.get('PORT', 5000))
     
                 
             
