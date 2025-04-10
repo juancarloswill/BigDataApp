@@ -20,7 +20,7 @@ def connect_mongo():
         return None
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    client = conect_mongo()
+    client = connect_mongo()
     databases=[]
     error_message = None
     if client:
