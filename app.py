@@ -14,6 +14,7 @@ def connect_mongo():
     try:
         client = MongoClient(mongo_uri, server_api=ServerApi('1'))
         print("MongoDB connection successfull")
+        return client 
     except Exception as e:
         print(f"Error connecting to MondoDB: {e}")
         return None
