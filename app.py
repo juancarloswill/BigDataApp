@@ -29,10 +29,7 @@ def index():
             error_message = "No es posible listar las bases de datos."
             print(f"Error listing databases: {e}")
         finally:
-            client.close()
-            
-    else:
-        error_message = "Failed to connect to MongoDB."
+            client.close()       
 
     if request.method == 'POST':
         selected_db = request.form.get('database')
