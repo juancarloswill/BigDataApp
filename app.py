@@ -13,14 +13,14 @@ if not mongo_uri:
 def connect_mongo():
     try:
         client = MongoClient(mongo_uri, server_api=ServerApi('1'))
-        print("MongoDB connection successfull")
+        print("Conexión exitosa a MongoDB")
         return client 
     except Exception as e:
         print(f"Error connecting to MondoDB: {e}")
         return None
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    client = connect_mongo()
+    client = conect_mongo()
     databases=[]
     error_message = None
     if client:
@@ -61,7 +61,7 @@ def get_collection_data(selected_db):
             client.close()
     return collections_data
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=os.environ.get('PORT', 5000))
+    app.run(debug=True, host='0.0.0.0', port=os.getenv('PORT', 5000))
     
                 
             
