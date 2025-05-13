@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BigData Admin - JCRG</title>
+    <title>BigData Admin - JCRG - Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
@@ -19,7 +19,7 @@
                         <a class="nav-link text-white" href="/about">Acerca de</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="/login">Ingresar</a>
+                        <a class="nav-link text-white" href="/login"><b>[Ingresar]</b></a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link text-white" href="/contacto">Contacto</a>
@@ -29,8 +29,26 @@
         </div>
     </header>
     <div class="container">
-        <br/><br/>
-        <h1 class="mt-5">Bienvenido a mi proyecto de BigData JCRG</h1>
+        <div class="login-form">
+            {% if error_message %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error_message }}
+                </div>
+            {% endif %}
+            <form method="post" action="/login">
+                <h1 class="mt-5">Iniciar Sesión</h1>
+                <div class="mb-3">
+                    <label for="username" class="form-label">Usuario:</label>
+                    <input type="text" class="form-control" id="username" name="username" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Contraseña:</label>
+                    <input type="password" class="form-control" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Iniciar Sesión</button>            
+            </form>
+        </div>
+        
     </div>
     <footer class="bg-light text-center py-3">
         <div class="container">
@@ -42,6 +60,5 @@
     <script>
         document.getElementById("current-year").innerHTML = new Date().getFullYear();
     </script>
-    
 </body>
 </html>

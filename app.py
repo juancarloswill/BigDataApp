@@ -4,6 +4,13 @@ from pymongo.server_api import ServerApi
 import os
 
 app = Flask(__name__)
+
+#para llevar  el secreto de la app desde las variables de entorno (recomendado para seguridad)
+app.secret_key = os.environ.get('secret_key')
+if not app.secret_key:
+    app.secret_key = 'secret_key'
+
+
 mongo_uri = os.environ.get("MONGODB_URI")
 
 if not mongo_uri:
@@ -18,8 +25,61 @@ def connect_mongo():
     except Exception as e:
         print(f"Error connecting to MondoDB: {e}")
         return None
-@app.route('/', methods=['GET', 'POST'])
+    
+@app.route('/')
 def index():
+    return render_template('index.html')
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+@app.route('/contacto', methods=['GET', 'POST'])
+def contacto():
+    if request.method == 'POST':
+        nombre = request.form.get('nombre')
+        email = request.form.get('email')
+        mensaje = request.form.get('mensaje')
+        #aqui agregar la lógica para enviar el mensaje a la base de datos de mongoDbAtlas(administracion)
+        #colección "contactos tarea para hacer internamente"
+        return  render_template('contacto.html', nombre=nombre, email=email, mensaje=mensaje)
+    return render_template('contacto.html')
+
+
+@app.route('/login', methods=['POST'])
+def login():
+    if request.method == 'POST':
+        client = connect_mongo()
+        if client:   
+            db= client['administracion']   
+            seguridad_colection= db['seguridad']
+            
+            username = request.form.get('username')
+            password = request.form.get('password')
+
+            #verificar las credenciales
+            user = seguridad_colection.find_one({'usuario': username, 'pass': password})
+            if user:
+                session['usuario'] = username
+                return redirect(url_for('gestion_mongoDb'))
+            else:
+                error_message = "Usuario o contraseña incorrectos."
+                return render_template('login.html', error_message=error_message)    
+
+        else:
+            error_message = "No se tiene conectividad con la base de datos."
+            return render_template('login.html', error_message=error_message)        
+
+    return render_template('login.html')   
+
+    
+
+
+
+
+
+@app.route('/', methods=['GET', 'POST'])
+def gestion_mongoDb():
     client = connect_mongo()
     databases=[]
     error_message = None
