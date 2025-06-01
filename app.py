@@ -17,13 +17,13 @@ def inject_now():
     return {'now': datetime.now}
 
 # Versión de la aplicación
-VERSION_APP = "Versión 2.2 del Mayo 22 del 2025"
-CREATOR_APP = "Nombre del creador/ruta github"
+VERSION_APP = "Versión 2.5 del Junio 01 del 2025"
+CREATOR_APP = "Juan Carlos Rodriguez /https://github.com/juancarloswill/BigDataApp"
 mongo_uri   = os.environ.get("MONGO_URI")
 
 if not mongo_uri:
-    #uri = "mongodb+srv://DbCentral:DbCentral2025@cluster0.vhltza7.mongodb.net/?appName=Cluster0"
-    uri         = "mongodb+srv://DbCentral:DbCentral2025@cluster0.vhltza7.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+    
+    uri         = "mongodb+srv://jrodriguezg42:ca54sa69@dbcentral.kbsaqft.mongodb.net/?retryWrites=true&w=majority&appName=DbCentral"
     mongo_uri   = uri
 
 # Función para conectar a MongoDB
