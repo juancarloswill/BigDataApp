@@ -27,7 +27,10 @@
 
     <div class="container">
         <h1 class="text-center mb-4">Contactar</h1>
-        
+
+        {% if enviado %}
+            <p style="color: green;">✅ Gracias {{ nombre }} tu mensaje fue enviado correctamente.</p>
+        {% endif %}        
         <form method="POST" action="/contacto" class="col-md-8 mx-auto">
             <div class="mb-3">
                 <label for="nombre" class="form-label">Nombre</label>

@@ -55,9 +55,27 @@ def about():
 @app.route('/contacto', methods=['GET', 'POST'])
 def contacto():
     if request.method == 'POST':
-        # Aquí va la lógica para procesar el formulario de contacto
-        return redirect(url_for('contacto'))
-    return render_template('contacto.html', version=VERSION_APP,creador=CREATOR_APP)
+        nombre = request.form.get('name')
+        email = request.form.get('email')
+        mensaje = request.form.get('message')
+
+        client = connect_mongo()
+        if client:
+            db = client['BaseCentral']
+            contactos_collection = db['contacto']
+
+            contacto_data = {
+                'nombreContacto': nombre,
+                'email': email,
+                'mensaje': mensaje
+            }
+            contactos_collection.insert_one(contacto_data)
+            client.close()
+
+        # Pasamos "enviado=True" al HTML
+        return render_template('contacto.html', nombre=nombre, email=email, mensaje=mensaje, enviado=True)
+
+    return render_template('contacto.html', enviado=False)
 
 
 @app.route('/login', methods=['GET', 'POST'])
