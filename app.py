@@ -55,9 +55,10 @@ def about():
 @app.route('/contacto', methods=['GET', 'POST'])
 def contacto():
     if request.method == 'POST':
-        nombre = request.form.get('name')
+        nombre = request.form.get('nombre')
         email = request.form.get('email')
-        mensaje = request.form.get('message')
+        asunto = request.form.get('asunto')
+        mensaje = request.form.get('mensaje')
 
         client = connect_mongo()
         if client:
@@ -67,6 +68,7 @@ def contacto():
             contacto_data = {
                 'nombreContacto': nombre,
                 'email': email,
+                'asunto': asunto,
                 'mensaje': mensaje
             }
             contactos_collection.insert_one(contacto_data)
