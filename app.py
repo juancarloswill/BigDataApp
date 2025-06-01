@@ -122,13 +122,13 @@ def gestion_proyecto():
                             collections_data=collections_data,
                             version=VERSION_APP,
                             creador=CREATOR_APP,
-                            usuario=session['usuario'])
+                            usuario=session.get('usuario'))
     except Exception as e:
         return render_template('gestion/index.html',
                             error_message=f'Error al conectar con MongoDB: {str(e)}',
                             version=VERSION_APP,
                             creador=CREATOR_APP,
-                            usuario=session['usuario'])
+                            usuario=session.get('usuario'))
 
        
 def get_collection_data(selected_db):
