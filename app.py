@@ -102,9 +102,9 @@ def gestion_mongoDb():
     if request.method == 'POST':
         selected_db = request.form.get('database')
         collection_data = get_collection_data(selected_db) # type: ignore
-        return render_template('index.html', databases=databases, selected_db=selected_db, collection_data=collection_data, error_message=error_message)
+        return render_template('gestionMongoDb.html', databases=databases, selected_db=selected_db, collection_data=collection_data, error_message=error_message)
    
-    return render_template('index.html', databases=databases, error_message=error_message)
+    return render_template('gestionMongoDb.html', databases=databases, error_message=error_message)
 def get_collection_data(selected_db):
     client = connect_mongo()
     collections_data=[]
