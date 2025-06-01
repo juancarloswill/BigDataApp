@@ -74,7 +74,7 @@ def login():
             user = seguridad_colection.find_one({'usuario': username, 'pass': password})
             if user:
                 session['usuario'] = username
-                return redirect(url_for('gestion_mongoDb'))
+                return redirect(url_for('gestion_proyecto'))
             else:
                 error_message = "Usuario o contraseña incorrectos."
                 return render_template('login.html', error_message=error_message)    
@@ -85,26 +85,36 @@ def login():
 
     return render_template('login.html')   
 
-@app.route('/dashboard', methods=['GET', 'POST'])
-def gestion_mongoDb():
-    client = connect_mongo()
-    databases=[]
-    error_message = None
-    if client:
-        try:
-            databases = client.list_database_names()
-        except Exception as e:
-            error_message = "No es posible listar las bases de datos."
-            print(f"Error listing databases: {e}")
-        finally:
-            client.close()       
+@app.route('/gestion_proyecto', methods=['GET', 'POST'])
+def gestion_proyecto():
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
+    try:
+        client = connect_mongo()
+        databases = client.list_database_names()
+        system_dbs = ['admin', 'local','config']
+        databases = [db for db in databases if db not in system_dbs]
 
-    if request.method == 'POST':
-        selected_db = request.form.get('database')
-        collection_data = get_collection_data(selected_db) # type: ignore
-        return render_template('gestionMongoDb.html', databases=databases, selected_db=selected_db, collection_data=collection_data, error_message=error_message)
-   
-    return render_template('gestionMongoDb.html', databases=databases, error_message=error_message)
+        selected_db = request.args.get('database')
+        collection_data = []
+
+        if selected_db:
+            db = client[selected_db]
+            collections = db.list_collection_names()
+            for index, collection_name in enumerate(collections,1):
+                collection = db[collection_name]
+                count = collection.count_documents({})
+                collection_data.append({
+                    'index': index,
+                    'name': collection_name,
+                    'count': count
+                })
+
+        return render_template('gestor/index.html',databases=databases,selected_db=selected_db,collection_data=collection_data,usuario=session['usuario'])
+    except Exception as e:
+        return render_template('gestor/index.html', error_message=f'Error al contectar con MongoDB: {str(e)}',usuario=session['usuario'])
+
+       
 def get_collection_data(selected_db):
     client = connect_mongo()
     collections_data=[]
