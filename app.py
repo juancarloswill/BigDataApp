@@ -85,7 +85,7 @@ def login():
 
     return render_template('login.html')   
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/dashboard', methods=['GET', 'POST'])
 def gestion_mongoDb():
     client = connect_mongo()
     databases=[]
