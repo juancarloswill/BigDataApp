@@ -37,14 +37,27 @@ def about():
 @app.route('/contacto', methods=['GET', 'POST'])
 def contacto():
     if request.method == 'POST':
-        nombre = request.form.get('nombre')
+        nombre = request.form.get('name')
         email = request.form.get('email')
-        mensaje = request.form.get('mensaje')
-        #aqui agregar la lógica para enviar el mensaje a la base de datos de mongoDbAtlas(administracion)
-        #colección "contactos tarea para hacer internamente"
-        return  render_template('contacto.html', nombre=nombre, email=email, mensaje=mensaje)
-    return render_template('contacto.html')
+        mensaje = request.form.get('message')
 
+        client = connect_mongo()
+        if client:
+            db = client['BaseCentral']
+            contactos_collection = db['contacto']
+
+            contacto_data = {
+                'nombreContacto': nombre,
+                'email': email,
+                'mensaje': mensaje
+            }
+            contactos_collection.insert_one(contacto_data)
+            client.close()
+
+        # Pasamos "enviado=True" al HTML
+        return render_template('contacto.html', nombre=nombre, email=email, mensaje=mensaje, enviado=True)
+
+    return render_template('contacto.html', enviado=False)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -71,12 +84,6 @@ def login():
             return render_template('login.html', error_message=error_message)        
 
     return render_template('login.html')   
-
-    
-
-
-
-
 
 @app.route('/', methods=['GET', 'POST'])
 def gestion_mongoDb():
