@@ -3,66 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BigData Admin - JCRG - Acerca de</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Acerca de - BigData-MiProyecto</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link href="{{ url_for('static', filename='css/landingPage.css') }}" rel="stylesheet">
 </head>
 <body>
-    <header class="bg-primary text-white text-center py-3">
+    <header class="header">
         <div class="container">
-            <h1>BigData proyecto de JCRG</h1>
-            <nav>
-                <ul class="nav justify-content-center">
-                    <li class="nav-item">
-                        <a class="nav-link text-white" href="/">Inicio</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white" href="/buscador">Buscador</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white" href="/about"><b>[Acerca de]</b></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white" href="/login">Ingresar</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white" href="/contacto">Contacto</a>
-                    </li>
-                </ul>
-            </nav>
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 mb-0">BigData-MiProyecto</h1>
+                <nav>
+                    <ul class="nav">
+                        <li class="nav-item"><a class="nav-link" href="/">Inicio</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/buscador">Buscador</a></li>
+                        <li class="nav-item"><a class="nav-link active" href="/about"><b>Acerca de</b></a></li>
+                        <li class="nav-item"><a class="nav-link" href="/login">Ingresar</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/contacto">Contacto</a></li>
+                    </ul>
+                </nav>
+            </div>
         </div>
     </header>
+
     <div class="container">
-        <h1 class="mt-5">Acerca de este proyecto</h1>
-        <h3>Este es un proyecto de BigData desarrollador por JCRG. Aquí puedes explorar y gestionar bases de datos MongoDB.</h3>
-        <p>Para más información, visita nuestra página de contacto.</p>
-    <br/><br/>
-    <div class="row justify-content-center">
-        <div class="col-md-12">
-            <h2>yo Juan Carlos Rodriguez Guacaneme</h2>
-            <ul>
-                <li>PROFESIONAL EN INGENIERIA DE SISTEMAS CON ESPECIALIZACIÓN EN ARQUITECTURA DE SOFTWARE</li>
-                <li>UNIVERSIDAD CENTRAL</li>
-                <li>MAESTRIA EN ANALITICA DE DATOS</li>
-            </ul>
-        </div>        
-    </div>
-    <div class="row justify-content-center">
-        <div class="col-md-12 social-links mt-3">
-            <a href="https://www.linkedin.com/in/juan-carlos-rodriguez-guac%C3%A" target="_blank" class="btn btn-primary">LinkedIn</a>
-            <a href="https://github.com/juancarloswill" target="_blank" class="btn btn-dark">GitHub</a>
-            <a href="https://twitter.com/juancarloswill" target="_blank" class="btn btn-info">Twitter</a>
+        <h1 class="text-center mb-4">BigData-MiProyecto</h1>
+        <h3 class="text-center mb-4">Descripción del Proyecto</h3>
+        <p class="text-center mb-4">Este proyecto es una aplicación web desarrollada para la gestión y análisis de datos utilizando MongoDB. Permite a los usuarios explorar bases de datos, visualizar colecciones y realizar consultas avanzadas sobre grandes volúmenes de información.</p>
+        
+        <div class="row justify-content-center">
+            <div class="col-md-6 text-center">
+                <img src="static/Images/creador.png" alt="Foto del creador" class="profile-img">
+                <h4>XYZ</h4>
+                <p>Estudiante de Maestría en Analítica de Datos</p>
+                <p>Universidad Central</p>
+                
+                <div class="social-links mt-3">
+                    <a href="https://github.com/xyz" target="_blank" class="btn btn-primary">GitHub</a>
+                    <a href="https://linkedin.com/in/xyz" target="_blank" class="btn btn-warning">LinkedIn</a>
+                    <a href="https://twitter.com/xyz" target="_blank"  class="btn btn-success">Twitter</a>
+                </div>
+            </div>
         </div>
     </div>
-    </div>
-    <footer class="bg-light text-center py-3">
-        <div class="container">
-            <p class="mb-0">BigData Admin - JCRG</p>
-            <p class="mb-0" id="current-year"></p>          
-        </div>
+
+    <footer class="text-center">
+        <p class="mb-0">Creado por {{ creador }}</p>
+        <p class="mb-0" id="current-year"></p>
+        <p class="mb-0" id="version_app">{{ version }}</p>
     </footer>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"  integrity="sha384-C6RzsynM9kWDrMNeT87bh950GNyZPhcTNXj1NW7RUbCSyn/ooj1pcV80y4r+XW5Dk"   crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq4cvVmFh9vju3MXgpoK" crossorigin="anonymous"></script>
     <script>
-        document.getElementById("current-year").innerHTML = new Date().getFullYear();
+        document.getElementById('current-year').textContent = new Date().getFullYear();
     </script>
 </body>
-</html>
+</html> 
