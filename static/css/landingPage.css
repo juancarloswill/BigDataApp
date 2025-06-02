@@ -1,24 +1,81 @@
-
+/* landingPage.css */
 body {
-    background: linear-gradient(to right, #255821, #40E0D0);
-    min-height: 100vh;
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(to right, #1e3c72, #2a5298);
+  color: #fff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
-.header {
-    background-color: rgba(255, 255, 255, 0.9);
-    padding: 1rem 0;
+
+header {
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 2rem 1rem;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
+
+header h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 600;
+}
+
 .container {
-    background-color: rgba(255, 255, 255, 0.9);
-    padding: 2rem;
-    border-radius: 10px;
-    margin-top: 2rem;
+  max-width: 800px;
+  margin: 3rem auto;
+  background-color: rgba(255, 255, 255, 0.15);
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  text-align: center;
 }
+
+.container h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.container p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.btn {
+  display: inline-block;
+  margin-top: 2rem;
+  padding: 0.75rem 2rem;
+  background-color: #00bcd4;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  text-decoration: none;
+}
+
+.btn:hover {
+  background-color: #0097a7;
+}
+
 footer {
-    background-color: rgba(0, 95, 73, 0.9);
-    padding: 1rem 0;
-    margin-top: 2rem;
-    color: #666;
+  margin-top: auto;
+  text-align: center;
+  padding: 1rem 0;
+  background-color: rgba(0, 0, 0, 0.2);
+  font-size: 0.9rem;
+  color: #ddd;
 }
-    
+
+@media (max-width: 600px) {
+  header h1 {
+    font-size: 2rem;
+  }
+  .container h2 {
+    font-size: 1.5rem;
+  }
+}
