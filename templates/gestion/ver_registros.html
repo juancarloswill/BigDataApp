@@ -126,11 +126,23 @@
                         // Agregar los nuevos registros
                         response.records.forEach(function (record) {
                             const rowData = [];
-                            Object.keys(record).forEach(function (key) {
-                                if (key !== '_id') {
-                                    rowData.push(record[key]);
+
+                            Object.entries(record).forEach(function ([key, value]) {
+                                if (key === '_id') return;
+
+                                if (key === 'productos' && Array.isArray(value)) {
+                                    let lista = '<button class="btn btn-success btn-sm" onclick="this.nextElementSibling.classList.toggle(\'d-none\')">Ver productos</button>';
+                                    lista += '<div class="d-none mt-2"><ul class="list-unstyled">';
+                                    value.forEach(function (prod) {
+                                        lista += `<li><strong>Cod:</strong> ${prod.codigo} – <strong>Total:</strong> ${prod.total} – <strong>IVA:</strong> ${prod.IVA}</li>`;
+                                    });
+                                    lista += '</ul></div>';
+                                    rowData.push(lista);
+                                } else {
+                                    rowData.push(value);
                                 }
                             });
+
                             table.row.add(rowData);
                         });
 
