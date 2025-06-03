@@ -14,7 +14,7 @@ body {
 .menu-container {
   max-width: 1200px;
   margin: 2rem auto 0 auto;
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: rgba(0, 0, 0, 0.4); /* Más contraste para que se vea mejor */
   padding: 1rem 2rem;
   border-radius: 15px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
@@ -31,34 +31,22 @@ body {
   color: #fff;
 }
 
-/* Navegación estilo botón */
+/* Navegación */
 .menu-container nav {
   display: flex;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
-.menu-container nav a.nav-btn {
-  color: #fff;
-  background-color: rgba(255, 255, 255, 0.1);
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
+.menu-container nav a {
+  color: #ffffff;
   text-decoration: none;
   font-weight: 500;
-  font-size: 1rem;
-  transition: background-color 0.3s ease, color 0.3s ease;
-  border: 1px solid transparent;
+  font-size: 1.1rem;
+  transition: color 0.3s ease;
 }
 
-.menu-container nav a.nav-btn:hover {
-  background-color: #00bcd4;
-  color: #fff;
-}
-
-.menu-container nav a.nav-btn.active {
-  background-color: #00bcd4;
-  color: #fff;
-  border: 1px solid #0097a7;
-  box-shadow: 0 0 8px rgba(0, 188, 212, 0.5);
+.menu-container nav a:hover {
+  color: #00bcd4;
 }
 
 /* Contenedor central */
@@ -74,7 +62,7 @@ body {
   font-size: 1.4rem;
 }
 
-/* Botón general */
+/* Botón (si lo usas) */
 .btn {
   display: inline-block;
   margin-top: 2rem;
