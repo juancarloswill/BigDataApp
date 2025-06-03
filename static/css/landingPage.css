@@ -10,27 +10,46 @@ body {
   flex-direction: column;
 }
 
-/* Header más ancho y centrado */
-header {
+/* Contenedor del menú */
+.menu-container {
   max-width: 1200px;
-  margin: 2rem auto 0 auto; /* centrado horizontal */
-  background-color: rgba(255, 255, 255, 0.1);
+  margin: 2rem auto 0 auto;
+  background-color: rgba(0, 0, 0, 0.4); /* Más contraste para que se vea mejor */
   padding: 1rem 2rem;
-  text-align: center;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  font-size: 1.1rem;
-  width: 90%;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
-/* Título dentro del header */
-header h1 {
-  margin: 0;
-  font-size: 2.3rem;
+/* Logo */
+.menu-container .logo {
+  font-size: 1.5rem;
   font-weight: 600;
+  color: #fff;
 }
 
-/* Contenedor central más ancho */
+/* Navegación */
+.menu-container nav {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.menu-container nav a {
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1.1rem;
+  transition: color 0.3s ease;
+}
+
+.menu-container nav a:hover {
+  color: #00bcd4;
+}
+
+/* Contenedor central */
 .container {
   max-width: 1200px;
   width: 90%;
@@ -43,7 +62,7 @@ header h1 {
   font-size: 1.4rem;
 }
 
-/* Botón principal */
+/* Botón (si lo usas) */
 .btn {
   display: inline-block;
   margin-top: 2rem;
@@ -73,6 +92,21 @@ footer {
   color: #ddd;
 }
 
-/* Responsivo para pantallas pequeñas */
+/* Responsivo */
 @media (max-width: 768px) {
-  header h1 {
+  .menu-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .menu-container nav {
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-top: 1rem;
+  }
+
+  .container {
+    font-size: 1.1rem;
+    padding: 2rem 1.5rem;
+  }
+}
