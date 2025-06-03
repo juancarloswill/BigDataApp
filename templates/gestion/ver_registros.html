@@ -58,26 +58,30 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for key, value in record.items() if key != '_id' %}
-                            <td>
-                                {% if key == 'productos' and value is iterable and value|length > 0 %}
-                                <button class="btn-toggle btn btn-success btn-sm" onclick="toggleProductos(this)">Ver
-                                    productos</button>
-                                <div class="productos-detalle mt-2" style="display: none;">
-                                    <ul class="list-unstyled mb-0">
-                                        {% for prod in value %}
-                                        <li>
-                                            <strong>Cod:</strong> {{ prod['codigo'] }} –
-                                            <strong>Total:</strong> {{ prod['total'] }} –
-                                            <strong>IVA:</strong> {{ prod['IVA'] }}
-                                        </li>
-                                        {% endfor %}
-                                    </ul>
-                                </div>
-                                {% else %}
-                                {{ value }}
-                                {% endif %}
-                            </td>
+                            {% for record in records %}
+                            <tr>
+                                {% for key, value in record.items() if key != '_id' %}
+                                <td>
+                                    {% if key == 'productos' and value is iterable and value|length > 0 %}
+                                    <button class="btn-toggle btn btn-success btn-sm"
+                                        onclick="toggleProductos(this)">Ver productos</button>
+                                    <div class="productos-detalle mt-2" style="display: none;">
+                                        <ul class="list-unstyled mb-0">
+                                            {% for prod in value %}
+                                            <li>
+                                                <strong>Cod:</strong> {{ prod['codigo'] }} –
+                                                <strong>Total:</strong> {{ prod['total'] }} –
+                                                <strong>IVA:</strong> {{ prod['IVA'] }}
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    {% else %}
+                                    {{ value }}
+                                    {% endif %}
+                                </td>
+                                {% endfor %}
+                            </tr>
                             {% endfor %}
                         </tbody>
                     </table>
