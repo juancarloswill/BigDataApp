@@ -10,47 +10,37 @@ body {
   flex-direction: column;
 }
 
-/* Header general */
+/* Header más ancho y centrado */
 header {
+  max-width: 1200px;
+  margin: 2rem auto 0 auto; /* centrado horizontal */
   background-color: rgba(255, 255, 255, 0.1);
-  padding: 2.5rem 1rem;
+  padding: 1rem 2rem;
   text-align: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  font-size: 1.2rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  font-size: 1.1rem;
+  width: 90%;
 }
 
-/* Título del header */
+/* Título dentro del header */
 header h1 {
   margin: 0;
-  font-size: 2.7rem;
+  font-size: 2.3rem;
   font-weight: 600;
 }
 
-/* Contenedor principal */
+/* Contenedor central más ancho */
 .container {
-  max-width: 1000px;
+  max-width: 1200px;
+  width: 90%;
   margin: 3rem auto;
   background-color: rgba(255, 255, 255, 0.15);
   padding: 3rem;
   border-radius: 15px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   text-align: center;
-  font-size: 1.5rem;
-  min-height: 60vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-/* Títulos dentro del contenedor */
-.container h2 {
-  font-size: 2.2rem;
-  margin-bottom: 1rem;
-}
-
-.container p {
-  font-size: 1.3rem;
-  line-height: 1.6;
+  font-size: 1.4rem;
 }
 
 /* Botón principal */
@@ -84,17 +74,5 @@ footer {
 }
 
 /* Responsivo para pantallas pequeñas */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   header h1 {
-    font-size: 2rem;
-  }
-
-  .container h2 {
-    font-size: 1.5rem;
-  }
-
-  .container {
-    padding: 2rem 1.5rem;
-    font-size: 1.2rem;
-  }
-}
