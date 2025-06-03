@@ -1,23 +1,112 @@
-
+/* landingPage.css con colores verdes */
 body {
-    background: linear-gradient(to right, #f9cbac, #f7f7f1);
-    min-height: 100vh;
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(to right, #2e7d32, #66bb6a); /* verde oscuro a verde medio */
+  color: #fff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
-.header {
-    background-color: rgba(138, 193, 242, 0.9);
-    padding: 1rem 0;
+
+/* Contenedor del menú */
+.menu-container {
+  max-width: 1200px;
+  margin: 2rem auto 0 auto;
+  background-color: rgba(0, 0, 0, 0.4);
+  padding: 1rem 2rem;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
 }
+
+/* Logo */
+.menu-container .logo {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* Navegación */
+.menu-container nav {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.menu-container nav a {
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1.1rem;
+  transition: color 0.3s ease;
+}
+
+.menu-container nav a:hover {
+  color: #a5d6a7; /* verde claro */
+}
+
+/* Contenedor central */
 .container {
-    background-color: rgba(130, 180, 201, 0.9);
-    padding: 2rem;
-    border-radius: 10px;
-    margin-top: 2rem;
+  max-width: 1200px;
+  width: 90%;
+  margin: 3rem auto;
+  background-color: rgba(255, 255, 255, 0.15);
+  padding: 3rem;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  font-size: 1.4rem;
 }
+
+/* Botón (si lo usas) */
+.btn {
+  display: inline-block;
+  margin-top: 2rem;
+  padding: 0.75rem 2rem;
+  background-color: #66bb6a; /* verde medio */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  text-decoration: none;
+}
+
+.btn:hover {
+  background-color: #388e3c; /* verde más oscuro */
+}
+
+/* Footer */
 footer {
-    background-color: rgba(80, 129, 242, 0.9);
-    padding: 1rem 0;
-    margin-top: 2rem;
-    color: #666;
+  margin-top: auto;
+  text-align: center;
+  padding: 1rem 0;
+  background-color: rgba(0, 0, 0, 0.2);
+  font-size: 0.9rem;
+  color: #c8e6c9; /* verde muy claro */
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .menu-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .menu-container nav {
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-top: 1rem;
+  }
+
+  .container {
+    font-size: 1.1rem;
+    padding: 2rem 1.5rem;
+  }
 }
