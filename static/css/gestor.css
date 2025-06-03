@@ -1,18 +1,20 @@
-/* landingPage.css con colores verdes */
+/* landingPage.css actualizado y ampliado en ancho */
+
 body {
   margin: 0;
   padding: 0;
   font-family: 'Poppins', sans-serif;
-  background: linear-gradient(to right, #2e7d32, #66bb6a); /* verde oscuro a verde medio */
+  background: linear-gradient(to right, #2e7d32, #66bb6a);
   color: #fff;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
-/* Contenedor del menú */
+/* Menú más ancho */
 .menu-container {
-  max-width: 1200px;
+  max-width: 1400px;
+  width: 95%;
   margin: 2rem auto 0 auto;
   background-color: rgba(0, 0, 0, 0.4);
   padding: 1rem 2rem;
@@ -46,13 +48,13 @@ body {
 }
 
 .menu-container nav a:hover {
-  color: #a5d6a7; /* verde claro */
+  color: #a5d6a7;
 }
 
-/* Contenedor central */
+/* Contenedor principal más ancho */
 .container {
-  max-width: 1200px;
-  width: 90%;
+  max-width: 1400px;
+  width: 95%;
   margin: 3rem auto;
   background-color: rgba(255, 255, 255, 0.15);
   padding: 3rem;
@@ -62,12 +64,12 @@ body {
   font-size: 1.4rem;
 }
 
-/* Botón (si lo usas) */
+/* Botón */
 .btn {
   display: inline-block;
   margin-top: 2rem;
   padding: 0.75rem 2rem;
-  background-color: #66bb6a; /* verde medio */
+  background-color: #66bb6a;
   color: white;
   border: none;
   border-radius: 8px;
@@ -79,7 +81,46 @@ body {
 }
 
 .btn:hover {
-  background-color: #388e3c; /* verde más oscuro */
+  background-color: #388e3c;
+}
+
+/* Tabla responsiva */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 2rem;
+  background-color: white;
+  color: #333;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+th, td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background-color: #a5d6a7;
+  color: #2e7d32;
+}
+
+/* Inputs y selects */
+input[type="text"],
+select {
+  padding: 0.5rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: none;
+  max-width: 100%;
+  width: 400px;
+  margin-bottom: 1rem;
+}
+
+input:focus,
+select:focus {
+  outline: 2px solid #66bb6a;
 }
 
 /* Footer */
@@ -89,10 +130,10 @@ footer {
   padding: 1rem 0;
   background-color: rgba(0, 0, 0, 0.2);
   font-size: 0.9rem;
-  color: #c8e6c9; /* verde muy claro */
+  color: #c8e6c9;
 }
 
-/* Responsivo */
+/* Responsive */
 @media (max-width: 768px) {
   .menu-container {
     flex-direction: column;
@@ -108,5 +149,10 @@ footer {
   .container {
     font-size: 1.1rem;
     padding: 2rem 1.5rem;
+  }
+
+  input[type="text"],
+  select {
+    width: 100%;
   }
 }
