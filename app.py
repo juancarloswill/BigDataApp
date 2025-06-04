@@ -237,6 +237,7 @@ def crear_coleccion():
             errores = 0
             BATCH_SIZE = 200
 
+            # Dentro del bloque donde procesas archivos JSON:
             for root, _, files in os.walk(temp_dir):
                 for file in files:
                     if file.endswith('.json'):
@@ -246,31 +247,31 @@ def crear_coleccion():
                                 json_data = json.load(f)
 
                                 if isinstance(json_data, list):
-                                    for i in range(0, len(json_data), BATCH_SIZE):
-                                        batch = json_data[i:i + BATCH_SIZE]
+                                    for i in range(0, len(json_data), 200):
                                         try:
-                                            collection.insert_many(batch, ordered=False)
+                                            batch = json_data[i:i+200]
+                                            collection.insert_many(batch)
                                             insertados += len(batch)
+                                            del batch  # libera lote actual
+                                            gc.collect()  # fuerza liberación
                                         except Exception as e:
-                                            errores += len(batch)
-                                            print(f"Error insertando lote: {e}")
-                                        finally:
-                                            del batch
-                                            gc.collect()  # liberar memoria
+                                            errores += len(json_data[i:i+200])
+                                            print(f"Error en insert_many del archivo {file}: {e}")
                                 else:
                                     try:
                                         collection.insert_one(json_data)
                                         insertados += 1
                                     except Exception as e:
                                         errores += 1
-                                        print(f"Error insertando documento: {e}")
+                                        print(f"Error en insert_one del archivo {file}: {e}")
 
+                            # Libera json_data de memoria después de usarlo
                             del json_data
                             gc.collect()
 
                         except Exception as e:
                             errores += 1
-                            print(f"Error leyendo archivo {file}: {e}")
+                            print(f"Error abriendo o leyendo {file}: {e}")
 
             # Limpiar el directorio temporal
             for root, dirs, files in os.walk(temp_dir, topdown=False):
