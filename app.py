@@ -1,30 +1,15 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
-import os, zipfile, json, tempfile, shutil
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
-from flask_session import Session
 import zipfile
-from datetime import datetime
 import os
+from datetime import datetime
 import json
 import re
-import gc
-import shutil
-import tempfile
 from elasticsearch import Elasticsearch
-from pymongo.errors import BulkWriteError
 
 app = Flask(__name__)
 app.secret_key = 'tu_clave_secreta_aqui'  # Cambia esto por una clave secreta segura
-
-# ✅ CONFIGURACIÓN DE SESIÓN PERSISTENTE
-app.config['SESSION_TYPE'] = 'filesystem'
-app.config['SESSION_PERMANENT'] = False
-app.config['SESSION_USE_SIGNER'] = True
-app.config['SESSION_FILE_DIR'] = tempfile.mkdtemp()
-
-Session(app)  # ✅ Inicializa el manejo de sesiones
-
 
 # Agregar la función now al contexto de la plantilla
 @app.context_processor
@@ -33,7 +18,7 @@ def inject_now():
 
 # Versión de la aplicación
 VERSION_APP = "Versión 2.5 del Junio 01 del 2025"
-CREATOR_APP = "Juan Carlos Rodriguez https://github.com/juancarloswill/BigDataApp"
+CREATOR_APP = "Juan Carlos Rodriguez /https://github.com/juancarloswill/BigDataApp"
 mongo_uri   = os.environ.get("MONGO_URI")
 
 if not mongo_uri:
@@ -195,16 +180,6 @@ def gestion_proyecto():
                             creador=CREATOR_APP,
                             usuario=session['usuario'])
 
-from functools import wraps
-
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'usuario' not in session:
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-    return decorated_function
-
 @app.route('/crear-coleccion-form/<database>')
 def crear_coleccion_form(database):
     if 'usuario' not in session:
@@ -216,77 +191,84 @@ def crear_coleccion_form(database):
                         creador=CREATOR_APP)
 
 @app.route('/crear-coleccion', methods=['POST'])
-@login_required
 def crear_coleccion():
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
+    
     try:
-        database = request.form['database']
-        collection_name = request.form['collection_name']
-        zip_file = request.files['zip_file']
-
-        if not zip_file.filename.endswith('.zip'):
-            mensaje = "Solo se permiten archivos ZIP."
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return jsonify({"error": mensaje}), 400
-            return mensaje, 400
-
-        temp_dir = tempfile.mkdtemp()
-        zip_path = os.path.join(temp_dir, zip_file.filename)
-        zip_file.save(zip_path)
-
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            zip_ref.extractall(temp_dir)
-
+        database = request.form.get('database')
+        collection_name = request.form.get('collection_name')
+        zip_file = request.files.get('zip_file')
+        
+        if not all([database, collection_name, zip_file]):
+            return render_template('gestion/crear_coleccion.html',
+                                error_message='Todos los campos son requeridos',
+                                database=database,
+                                usuario=session['usuario'],
+                                version=VERSION_APP,
+                                creador=CREATOR_APP)
+        
+        # Conectar a MongoDB
         client = connect_mongo()
+        if not client:
+            return render_template('gestion/crear_coleccion.html',
+                                error_message='Error de conexión con MongoDB',
+                                database=database,
+                                usuario=session['usuario'],
+                                version=VERSION_APP,
+                                creador=CREATOR_APP)
+        
+        # Crear la colección
         db = client[database]
         collection = db[collection_name]
-
-        insertados = 0
-        errores = 0
-
-        for root, dirs, files in os.walk(temp_dir):
-            for file in files:
-                if file.endswith('.json'):
-                    try:
+        
+        # Procesar el archivo ZIP
+        with zipfile.ZipFile(zip_file) as zip_ref:
+            # Crear un directorio temporal para extraer los archivos
+            temp_dir = os.path.join(os.path.dirname(__file__), 'temp')
+            os.makedirs(temp_dir, exist_ok=True)
+            
+            # Extraer los archivos
+            zip_ref.extractall(temp_dir)
+            
+            # Procesar cada archivo JSON
+            for root, _, files in os.walk(temp_dir):
+                for file in files:
+                    if file.endswith('.json'):
                         file_path = os.path.join(root, file)
                         with open(file_path, 'r', encoding='utf-8') as f:
-                            data = json.load(f)
-
-                        if isinstance(data, list):
-                            for i in range(0, len(data), 5):
-                                try:
-                                    result = collection.insert_many(data[i:i+5], ordered=False)
-                                    insertados += len(result.inserted_ids)
-                                except Exception as e:
-                                    errores += len(data[i:i+5])
-                                    print(f"Error en lote en {file}: {e}")
-                        else:
-                            collection.insert_one(data)
-                            insertados += 1
-
-                        del data
-                        gc.collect()
-                    except Exception as e:
-                        errores += 1
-                        print(f"Error en archivo {file}: {e}")
-
-        mensaje = f"Proceso completado. Archivos insertados: {insertados}, con errores: {errores}"
-
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return jsonify({
-                "mensaje": mensaje,
-                "insertados": insertados,
-                "errores": errores
-            })
-        else:
-            return render_template('gestion/crear_coleccion.html',
-                                   database=database,
-                                   usuario=session['usuario'],
-                                   version=VERSION_APP,
-                                   creador=CREATOR_APP,
-                                   success_message=mensaje)
-
+                            try:
+                                json_data = json.load(f)
+                                # Si el JSON es una lista, insertar cada elemento
+                                if isinstance(json_data, list):
+                                    collection.insert_many(json_data)
+                                else:
+                                    collection.insert_one(json_data)
+                            except json.JSONDecodeError:
+                                print(f"Error al procesar el archivo {file}")
+                            except Exception as e:
+                                print(f"Error al insertar datos del archivo {file}: {str(e)}")
+            
+            # Limpiar el directorio temporal
+            for root, dirs, files in os.walk(temp_dir, topdown=False):
+                for file in files:
+                    os.remove(os.path.join(root, file))
+                for dir in dirs:
+                    os.rmdir(os.path.join(root, dir))
+            os.rmdir(temp_dir)
+        
+        return redirect(url_for('gestion_proyecto', database=database))
+        
+    except Exception as e:
+        return render_template('gestion/crear_coleccion.html',
+                            error_message=f'Error al crear la colección: {str(e)}',
+                            database=database,
+                            usuario=session['usuario'],
+                            version=VERSION_APP,
+                            creador=CREATOR_APP)
     finally:
-        shutil.rmtree(temp_dir, ignore_errors=True)
+        if 'client' in locals():
+            client.close()
 
 @app.route('/ver-registros/<database>/<collection>')
 def ver_registros(database, collection):
@@ -564,96 +546,6 @@ def elastic_listar_documentos():
                             version=VERSION_APP,
                             creador=CREATOR_APP,
                             usuario=session['usuario'])
-    
-
-
-
-
-temp_root = "temp_uploads"
-os.makedirs(temp_root, exist_ok=True)
-
-@app.route('/subir-zip', methods=['POST'])
-def subir_zip():
-    zip_file = request.files['zip_file']
-    database = request.form['database']
-    collection_name = request.form['collection_name']
-
-    temp_root = "temp_uploads"
-    os.makedirs(temp_root, exist_ok=True)
-
-    temp_dir = tempfile.mkdtemp(dir=temp_root)
-    zip_path = os.path.join(temp_dir, zip_file.filename)
-    zip_file.save(zip_path)
-
-    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-        zip_ref.extractall(temp_dir)
-
-    archivos_json = []
-    for root, _, files in os.walk(temp_dir):
-        for f in files:
-            if f.lower().endswith('.json'):
-                rel_path = os.path.relpath(os.path.join(root, f), temp_dir)
-                archivos_json.append(rel_path)
-
-    archivos_json.sort()
-
-    session['zip_dir'] = temp_dir
-    session['archivos_json'] = archivos_json
-    session['database'] = database
-    session['collection'] = collection_name
-    session['actual'] = 0
-
-    return jsonify({"total": len(archivos_json)})
-
-@app.route('/procesar-lote', methods=['POST'])
-def procesar_lote():
-    if 'zip_dir' not in session:
-        return jsonify({"error": "Sesión no inicializada"}), 400
-
-    zip_dir = session['zip_dir']
-    archivos = session['archivos_json']
-    dbname = session['database']
-    colname = session['collection']
-    actual = session['actual']
-    lote = archivos[actual:actual+10]
-
-    client = MongoClient(os.environ.get("MONGO_URI"))
-    db = client[dbname]
-    collection = db[colname]
-
-    insertados = 0
-    for nombre in lote:
-        file_path = os.path.join(zip_dir, nombre)
-        if not os.path.exists(file_path):
-            print(f"[WARNING] Archivo no encontrado: {file_path}")
-            continue
-
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                
-                if isinstance(data, list) and data:
-                    collection.insert_many(data)
-                    insertados += len(data)
-                elif isinstance(data, dict) and data:
-                    collection.insert_one(data)
-                    insertados += 1
-                else:
-                    print(f"[WARNING] Archivo vacío o no insertable: {file_path}")
-        except Exception as e:
-            print(f"[ERROR] No se pudo insertar {file_path}: {e}")
-
-    session['actual'] = actual + len(lote)
-    terminado = session['actual'] >= len(archivos)
-
-    if terminado:
-        if os.path.exists(zip_dir):
-            shutil.rmtree(zip_dir, ignore_errors=True)
-        session.clear()
-
-    return jsonify({"insertados": insertados, "terminado": terminado})
-
-
 
 @app.route('/elastic-eliminar-documento', methods=['POST'])
 def elastic_eliminar_documento():
