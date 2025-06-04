@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cargar colección en MongoDB</title>
+  <title>Cargar colección por lotes</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="p-4">
   <div class="container">
-    <h2 class="mb-4">Crear Nueva Colección en MongoDB</h2>
+    <h2 class="mb-4">Cargar Archivos ZIP por Lotes en MongoDB</h2>
     <form id="cargarForm">
       <div class="mb-3">
         <label for="database" class="form-label">Base de Datos</label>
@@ -47,34 +47,63 @@
 
       const formData = new FormData(form);
       statusDiv.classList.remove('d-none');
-      mensaje.textContent = 'Subiendo y procesando ZIP...';
+      mensaje.textContent = 'Subiendo y extrayendo ZIP...';
+      barraProgreso.className = 'progress-bar progress-bar-striped bg-info';
       barraProgreso.style.width = '10%';
       barraProgreso.textContent = '10%';
 
-      fetch('/crear-coleccion', {
+      fetch('/subir-zip', {
         method: 'POST',
-        body: formData,
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest'  // Para que Flask sepa que es AJAX
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.total && data.total > 0) {
+          mensaje.textContent = 'Procesando lotes...';
+          procesarLotes(0, data.total, 0);
+        } else {
+          mensaje.textContent = 'No se encontraron archivos JSON válidos.';
+          barraProgreso.classList.add('bg-warning');
         }
+      })
+      .catch(err => {
+        mensaje.textContent = 'Error al subir: ' + err;
+        barraProgreso.classList.add('bg-danger');
+      });
+    });
+
+    function procesarLotes(actual, total, acumulado) {
+      fetch('/procesar-lote', {
+        method: 'POST'
       })
       .then(res => res.json())
       .then(data => {
         if (data.error) {
           mensaje.textContent = 'Error: ' + data.error;
           barraProgreso.classList.add('bg-danger');
-        } else {
-          mensaje.textContent = data.mensaje;
-          barraProgreso.style.width = '100%';
-          barraProgreso.textContent = '100%';
+          return;
+        }
+
+        const nuevos = data.insertados || 0;
+        const totalInsertados = acumulado + nuevos;
+        const porcentaje = Math.min(100, Math.round((totalInsertados / total) * 100));
+        
+        barraProgreso.style.width = porcentaje + '%';
+        barraProgreso.textContent = porcentaje + '%';
+
+        if (data.terminado) {
+          mensaje.textContent = `Carga finalizada. Insertados: ${totalInsertados} documentos.`;
+          barraProgreso.classList.remove('bg-info');
           barraProgreso.classList.add('bg-success');
+        } else {
+          setTimeout(() => procesarLotes(actual + nuevos, total, totalInsertados), 300);
         }
       })
       .catch(err => {
-        mensaje.textContent = 'Error al cargar: ' + err;
+        mensaje.textContent = 'Error al procesar lote: ' + err;
         barraProgreso.classList.add('bg-danger');
       });
-    });
+    }
   </script>
 </body>
 </html>

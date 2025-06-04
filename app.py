@@ -242,12 +242,12 @@ def crear_coleccion():
                             data = json.load(f)
 
                         if isinstance(data, list):
-                            for i in range(0, len(data), 10):
+                            for i in range(0, len(data), 5):
                                 try:
-                                    result = collection.insert_many(data[i:i+10], ordered=False)
+                                    result = collection.insert_many(data[i:i+5], ordered=False)
                                     insertados += len(result.inserted_ids)
                                 except Exception as e:
-                                    errores += len(data[i:i+10])
+                                    errores += len(data[i:i+5])
                                     print(f"Error en lote en {file}: {e}")
                         else:
                             collection.insert_one(data)
