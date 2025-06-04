@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, j
 import os, zipfile, json, tempfile, shutil
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
+from flask_session import Session
 import zipfile
 from datetime import datetime
 import os
@@ -15,6 +16,15 @@ from pymongo.errors import BulkWriteError
 
 app = Flask(__name__)
 app.secret_key = 'tu_clave_secreta_aqui'  # Cambia esto por una clave secreta segura
+
+# ✅ CONFIGURACIÓN DE SESIÓN PERSISTENTE
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_PERMANENT'] = False
+app.config['SESSION_USE_SIGNER'] = True
+app.config['SESSION_FILE_DIR'] = tempfile.mkdtemp()
+
+Session(app)  # ✅ Inicializa el manejo de sesiones
+
 
 # Agregar la función now al contexto de la plantilla
 @app.context_processor

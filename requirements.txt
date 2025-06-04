@@ -2,3 +2,4 @@ Flask
 pymongo
 gunicorn
 elasticSearch
+flask-session
