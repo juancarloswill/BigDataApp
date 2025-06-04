@@ -66,15 +66,24 @@
                                     <button class="btn-toggle btn btn-success btn-sm"
                                         onclick="toggleProductos(this)">Ver productos</button>
                                     <div class="productos-detalle mt-2" style="display: none;">
-                                        <ul class="list-unstyled mb-0">
-                                            {% for prod in value %}
-                                            <li>
-                                                <strong>Cod:</strong> {{ prod['codigo'] }} –
-                                                <strong>Total:</strong> {{ prod['total'] }} –
-                                                <strong>IVA:</strong> {{ prod['IVA'] }}
-                                            </li>
-                                            {% endfor %}
-                                        </ul>
+                                        <table class="table table-bordered table-sm table-light mb-0">
+                                            <thead class="table-success">
+                                                <tr>
+                                                    <th>Código</th>
+                                                    <th>Total</th>
+                                                    <th>IVA</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for prod in value %}
+                                                <tr>
+                                                    <td>{{ prod['codigo'] }}</td>
+                                                    <td>{{ prod['total'] }}</td>
+                                                    <td>{{ prod['IVA'] }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
                                     </div>
                                     {% else %}
                                     {{ value }}
@@ -174,7 +183,13 @@
             background: rgba(255, 255, 255, 0.1);
             padding: 0.5rem;
             border-radius: 6px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+        }
+
+        .productos-detalle table {
+            background-color: #ffffff;
+            color: #000;
+            font-size: 0.85rem;
         }
     </style>
     <script>
