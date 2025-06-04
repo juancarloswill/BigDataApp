@@ -3,8 +3,8 @@ import os, zipfile, json, tempfile, shutil
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import zipfile
-import os
 from datetime import datetime
+import os
 import json
 import re
 import gc
@@ -185,6 +185,16 @@ def gestion_proyecto():
                             creador=CREATOR_APP,
                             usuario=session['usuario'])
 
+from functools import wraps
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'usuario' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 @app.route('/crear-coleccion-form/<database>')
 def crear_coleccion_form(database):
     if 'usuario' not in session:
@@ -197,6 +207,7 @@ def crear_coleccion_form(database):
 
 # Ruta para crear colección desde ZIP
 @app.route('/crear-coleccion', methods=['POST'])
+@login_required
 def crear_coleccion():
     database = request.form['database']
     collection_name = request.form['collection_name']
