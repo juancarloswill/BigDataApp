@@ -9,6 +9,7 @@
 <body class="p-4">
   <div class="container">
     <h2 class="mb-4">Cargar Archivos ZIP por Lotes en MongoDB</h2>
+
     <form id="cargarForm">
       <div class="mb-3">
         <label for="database" class="form-label">Base de Datos</label>
@@ -54,7 +55,8 @@
 
       fetch('/subir-zip', {
         method: 'POST',
-        body: formData
+        body: formData,
+        credentials: 'same-origin'  // 🔒 mantiene la sesión activa
       })
       .then(res => res.json())
       .then(data => {
@@ -63,45 +65,44 @@
           procesarLotes(0, data.total, 0);
         } else {
           mensaje.textContent = 'No se encontraron archivos JSON válidos.';
-          barraProgreso.classList.add('bg-warning');
+          barraProgreso.classList.replace('bg-info', 'bg-warning');
         }
       })
       .catch(err => {
-        mensaje.textContent = 'Error al subir: ' + err;
-        barraProgreso.classList.add('bg-danger');
+        mensaje.textContent = 'Error al subir ZIP: ' + err;
+        barraProgreso.classList.replace('bg-info', 'bg-danger');
       });
     });
 
     function procesarLotes(actual, total, acumulado) {
       fetch('/procesar-lote', {
-        method: 'POST'
+        method: 'POST',
+        credentials: 'same-origin'  // 🔒 mantiene la sesión activa
       })
       .then(res => res.json())
       .then(data => {
         if (data.error) {
           mensaje.textContent = 'Error: ' + data.error;
-          barraProgreso.classList.add('bg-danger');
+          barraProgreso.classList.replace('bg-info', 'bg-danger');
           return;
         }
 
         const nuevos = data.insertados || 0;
         const totalInsertados = acumulado + nuevos;
         const porcentaje = Math.min(100, Math.round((totalInsertados / total) * 100));
-        
         barraProgreso.style.width = porcentaje + '%';
         barraProgreso.textContent = porcentaje + '%';
 
         if (data.terminado) {
-          mensaje.textContent = `Carga finalizada. Insertados: ${totalInsertados} documentos.`;
-          barraProgreso.classList.remove('bg-info');
-          barraProgreso.classList.add('bg-success');
+          mensaje.innerHTML = `<span class="text-success">Carga finalizada. Insertados: <b>${totalInsertados}</b> documentos.</span>`;
+          barraProgreso.classList.replace('bg-info', 'bg-success');
         } else {
           setTimeout(() => procesarLotes(actual + nuevos, total, totalInsertados), 300);
         }
       })
       .catch(err => {
-        mensaje.textContent = 'Error al procesar lote: ' + err;
-        barraProgreso.classList.add('bg-danger');
+        mensaje.textContent = 'Error procesando lote: ' + err;
+        barraProgreso.classList.replace('bg-info', 'bg-danger');
       });
     }
   </script>
