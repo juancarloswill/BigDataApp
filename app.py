@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+import os, zipfile, json, tempfile, shutil
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import zipfile
@@ -541,6 +542,79 @@ def elastic_listar_documentos():
                             version=VERSION_APP,
                             creador=CREATOR_APP,
                             usuario=session['usuario'])
+    
+
+
+
+
+temp_root = "temp_uploads"
+os.makedirs(temp_root, exist_ok=True)
+
+@app.route('/subir-zip', methods=['POST'])
+def subir_zip():
+    zip_file = request.files['zip_file']
+    database = request.form['database']
+    collection_name = request.form['collection_name']
+
+    temp_dir = tempfile.mkdtemp(dir=temp_root)
+    zip_path = os.path.join(temp_dir, zip_file.filename)
+    zip_file.save(zip_path)
+
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(temp_dir)
+
+    archivos_json = [f for f in os.listdir(temp_dir) if f.endswith('.json')]
+    archivos_json.sort()
+
+    session['zip_dir'] = temp_dir
+    session['archivos_json'] = archivos_json
+    session['database'] = database
+    session['collection'] = collection_name
+    session['actual'] = 0
+
+    return jsonify({"total": len(archivos_json)})
+
+@app.route('/procesar-lote', methods=['POST'])
+def procesar_lote():
+    if 'zip_dir' not in session:
+        return jsonify({"error": "Sesión no inicializada"}), 400
+
+    zip_dir = session['zip_dir']
+    archivos = session['archivos_json']
+    dbname = session['database']
+    colname = session['collection']
+    actual = session['actual']
+    lote = archivos[actual:actual+10]
+
+    client = MongoClient(os.environ.get("MONGO_URI"))
+    db = client[dbname]
+    collection = db[colname]
+
+    insertados = 0
+    for nombre in lote:
+        try:
+            with open(os.path.join(zip_dir, nombre), 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                if isinstance(data, list):
+                    collection.insert_many(data)
+                    insertados += len(data)
+                else:
+                    collection.insert_one(data)
+                    insertados += 1
+        except Exception as e:
+            print(f"Error con {nombre}: {e}")
+
+    session['actual'] = actual + len(lote)
+    terminado = session['actual'] >= len(archivos)
+
+    if terminado:
+        shutil.rmtree(zip_dir)
+        session.clear()
+
+    return jsonify({"insertados": insertados, "terminado": terminado})
+
+
+
 
 @app.route('/elastic-eliminar-documento', methods=['POST'])
 def elastic_eliminar_documento():
