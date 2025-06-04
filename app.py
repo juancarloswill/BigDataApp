@@ -42,7 +42,7 @@ client = Elasticsearch(
     "https://my-elasticsearch-project-dc01a9.es.us-east-1.aws.elastic.cloud:443",
     api_key="MUNVLU9aY0JOUFl4a0VKdDNUM1I6aDVQUExCcVFpNGhQM3BZSUZiX3UzQQ=="
 )
-INDEX_NAME = "ucentral_test"
+INDEX_NAME = "ucentral_juan"
 
 @app.route('/')
 def index():
