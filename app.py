@@ -228,21 +228,25 @@ def crear_coleccion():
                             data = json.load(f)
 
                         if isinstance(data, list):
-                            for i in range(0, len(data), 200):
+                            for i in range(0, len(data), 10):  # Lotes más pequeños
                                 try:
-                                    result = collection.insert_many(data[i:i+200], ordered=False)
+                                    result = collection.insert_many(data[i:i+10], ordered=False)
                                     insertados += len(result.inserted_ids)
+                                    del result
+                                    gc.collect()
                                 except Exception as e:
-                                    errores += len(data[i:i+200])
-                                    print(f"Error en lote de lista en {file}: {str(e)}")
+                                    errores += len(data[i:i+10])
+                                    print(f"Error en lote en {file}: {e}")
                         else:
                             collection.insert_one(data)
                             insertados += 1
 
+                        del data  # liberar data
                         gc.collect()
+
                     except Exception as e:
                         errores += 1
-                        print(f"Error en archivo {file}: {str(e)}")
+                        print(f"Error en archivo {file}: {e}")
 
         mensaje = f"Proceso completado. Archivos insertados: {insertados}, con errores: {errores}"
         return render_template('gestion/crear_coleccion.html',
