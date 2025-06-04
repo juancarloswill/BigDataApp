@@ -615,19 +615,23 @@ def procesar_lote():
     for nombre in lote:
         file_path = os.path.join(zip_dir, nombre)
         if not os.path.exists(file_path):
-            print(f"Archivo no encontrado: {file_path}")
+            print(f"[WARNING] Archivo no encontrado: {file_path}")
             continue
+
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                if isinstance(data, list):
+                
+                if isinstance(data, list) and data:
                     collection.insert_many(data)
                     insertados += len(data)
-                else:
+                elif isinstance(data, dict) and data:
                     collection.insert_one(data)
                     insertados += 1
+                else:
+                    print(f"[WARNING] Archivo vacío o no insertable: {file_path}")
         except Exception as e:
-            print(f"Error con {nombre}: {e}")
+            print(f"[ERROR] No se pudo insertar {file_path}: {e}")
 
     session['actual'] = actual + len(lote)
     terminado = session['actual'] >= len(archivos)
