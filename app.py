@@ -18,7 +18,7 @@ def inject_now():
 
 # Versión de la aplicación
 VERSION_APP = "Versión 2.5 del Junio 01 del 2025"
-CREATOR_APP = "Juan Carlos Rodriguez /https://github.com/juancarloswill/BigDataApp"
+CREATOR_APP = "Juan Carlos Rodriguez https://github.com/juancarloswill/BigDataApp"
 mongo_uri   = os.environ.get("MONGO_URI")
 
 if not mongo_uri:
@@ -232,22 +232,37 @@ def crear_coleccion():
             zip_ref.extractall(temp_dir)
             
             # Procesar cada archivo JSON
+            insertados = 0
+            errores = 0
+
             for root, _, files in os.walk(temp_dir):
                 for file in files:
                     if file.endswith('.json'):
                         file_path = os.path.join(root, file)
-                        with open(file_path, 'r', encoding='utf-8') as f:
-                            try:
+                        try:
+                            with open(file_path, 'r', encoding='utf-8') as f:
                                 json_data = json.load(f)
-                                # Si el JSON es una lista, insertar cada elemento
+
                                 if isinstance(json_data, list):
-                                    collection.insert_many(json_data)
+                                    # Insertar por lotes de 200
+                                    for i in range(0, len(json_data), 200):
+                                        try:
+                                            collection.insert_many(json_data[i:i+200])
+                                            insertados += len(json_data[i:i+200])
+                                        except Exception as e:
+                                            errores += len(json_data[i:i+200])
+                                            print(f"Error en insert_many del archivo {file}: {e}")
                                 else:
-                                    collection.insert_one(json_data)
-                            except json.JSONDecodeError:
-                                print(f"Error al procesar el archivo {file}")
-                            except Exception as e:
-                                print(f"Error al insertar datos del archivo {file}: {str(e)}")
+                                    try:
+                                        collection.insert_one(json_data)
+                                        insertados += 1
+                                    except Exception as e:
+                                        errores += 1
+                                        print(f"Error en insert_one del archivo {file}: {e}")
+
+                        except Exception as e:
+                            errores += 1
+                            print(f"Error abriendo o leyendo {file}: {e}")
             
             # Limpiar el directorio temporal
             for root, dirs, files in os.walk(temp_dir, topdown=False):
