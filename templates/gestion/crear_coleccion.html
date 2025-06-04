@@ -1,99 +1,80 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cargar colección en MongoDB</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cargar colección en MongoDB</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="p-4">
-    <div class="container">
-        <h2 class="mb-4">Crear Nueva Colección en MongoDB</h2>
-        <form id="cargarForm">
-            <div class="mb-3">
-                <label for="database" class="form-label">Base de Datos</label>
-                <input type="text" class="form-control" id="database" name="database" value="{{ database }}" readonly>
-            </div>
+  <div class="container">
+    <h2 class="mb-4">Crear Nueva Colección en MongoDB</h2>
+    <form id="cargarForm">
+      <div class="mb-3">
+        <label for="database" class="form-label">Base de Datos</label>
+        <input type="text" class="form-control" id="database" name="database" value="{{ database }}" readonly>
+      </div>
 
-            <div class="mb-3">
-                <label for="collection_name" class="form-label">Nombre de la Colección</label>
-                <input type="text" class="form-control" id="collection_name" name="collection_name" required>
-            </div>
+      <div class="mb-3">
+        <label for="collection_name" class="form-label">Nombre de la Colección</label>
+        <input type="text" class="form-control" id="collection_name" name="collection_name" required>
+      </div>
 
-            <div class="mb-3">
-                <label for="zip_file" class="form-label">Archivo ZIP</label>
-                <input type="file" class="form-control" id="zip_file" name="zip_file" accept=".zip" required>
-            </div>
+      <div class="mb-3">
+        <label for="zip_file" class="form-label">Archivo ZIP</label>
+        <input type="file" class="form-control" id="zip_file" name="zip_file" accept=".zip" required>
+      </div>
 
-            <button type="submit" class="btn btn-primary">Subir y Procesar</button>
-        </form>
+      <button type="submit" class="btn btn-primary">Subir y Procesar</button>
+    </form>
 
-        <div id="status" class="mt-4 d-none">
-            <p id="mensaje" class="text-info">Subiendo archivo ZIP...</p>
-            <div class="progress">
-                <div id="barraProgreso" class="progress-bar progress-bar-striped" role="progressbar" style="width: 0%">0%</div>
-            </div>
-        </div>
+    <div id="status" class="mt-4 d-none">
+      <p id="mensaje" class="text-info">Subiendo archivo ZIP...</p>
+      <div class="progress">
+        <div id="barraProgreso" class="progress-bar progress-bar-striped" role="progressbar" style="width: 0%">0%</div>
+      </div>
     </div>
+  </div>
 
-    <script>
-        const form = document.getElementById('cargarForm');
-        const statusDiv = document.getElementById('status');
-        const mensaje = document.getElementById('mensaje');
-        const barraProgreso = document.getElementById('barraProgreso');
+  <script>
+    const form = document.getElementById('cargarForm');
+    const statusDiv = document.getElementById('status');
+    const mensaje = document.getElementById('mensaje');
+    const barraProgreso = document.getElementById('barraProgreso');
 
-        form.addEventListener('submit', function (e) {
-            e.preventDefault();
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
 
-            const formData = new FormData(form);
-            statusDiv.classList.remove('d-none');
+      const formData = new FormData(form);
+      statusDiv.classList.remove('d-none');
+      mensaje.textContent = 'Subiendo y procesando ZIP...';
+      barraProgreso.style.width = '10%';
+      barraProgreso.textContent = '10%';
 
-            // Paso 1: subir el ZIP y extraer
-            mensaje.textContent = 'Subiendo y extrayendo ZIP...';
-            barraProgreso.style.width = '10%';
-            barraProgreso.textContent = '10%';
-
-            fetch('/cargar-archivo', {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    mensaje.textContent = 'Procesando en lotes...';
-                    procesarLotes(data.session_id, 0, data.total);
-                } else {
-                    mensaje.textContent = 'Error: ' + data.message;
-                }
-            })
-            .catch(err => {
-                mensaje.textContent = 'Error al cargar: ' + err;
-            });
-        });
-
-        function procesarLotes(sessionId, offset, total) {
-            fetch('/procesar-lote', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ session_id: sessionId, offset: offset })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.finished) {
-                    mensaje.textContent = `Carga completa: ${data.insertados} documentos insertados.`;
-                    barraProgreso.style.width = '100%';
-                    barraProgreso.textContent = '100%';
-                } else {
-                    let porcentaje = Math.min(100, Math.floor((offset + data.insertados) * 100 / total));
-                    barraProgreso.style.width = porcentaje + '%';
-                    barraProgreso.textContent = porcentaje + '%';
-                    setTimeout(() => procesarLotes(sessionId, offset + data.insertados, total), 500);
-                }
-            })
-            .catch(err => {
-                mensaje.textContent = 'Error procesando lote: ' + err;
-            });
+      fetch('/crear-coleccion', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'  // Para que Flask sepa que es AJAX
         }
-    </script>
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          mensaje.textContent = 'Error: ' + data.error;
+          barraProgreso.classList.add('bg-danger');
+        } else {
+          mensaje.textContent = data.mensaje;
+          barraProgreso.style.width = '100%';
+          barraProgreso.textContent = '100%';
+          barraProgreso.classList.add('bg-success');
+        }
+      })
+      .catch(err => {
+        mensaje.textContent = 'Error al cargar: ' + err;
+        barraProgreso.classList.add('bg-danger');
+      });
+    });
+  </script>
 </body>
 </html>

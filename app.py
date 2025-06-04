@@ -205,22 +205,24 @@ def crear_coleccion_form(database):
                         version=VERSION_APP,
                         creador=CREATOR_APP)
 
-# Ruta para crear colección desde ZIP
 @app.route('/crear-coleccion', methods=['POST'])
 @login_required
 def crear_coleccion():
-    database = request.form['database']
-    collection_name = request.form['collection_name']
-    zip_file = request.files['zip_file']
-
-    if not zip_file.filename.endswith('.zip'):
-        return "Solo se permiten archivos ZIP.", 400
-
-    temp_dir = tempfile.mkdtemp()
-    zip_path = os.path.join(temp_dir, zip_file.filename)
-    zip_file.save(zip_path)
-
     try:
+        database = request.form['database']
+        collection_name = request.form['collection_name']
+        zip_file = request.files['zip_file']
+
+        if not zip_file.filename.endswith('.zip'):
+            mensaje = "Solo se permiten archivos ZIP."
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({"error": mensaje}), 400
+            return mensaje, 400
+
+        temp_dir = tempfile.mkdtemp()
+        zip_path = os.path.join(temp_dir, zip_file.filename)
+        zip_file.save(zip_path)
+
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             zip_ref.extractall(temp_dir)
 
@@ -240,12 +242,10 @@ def crear_coleccion():
                             data = json.load(f)
 
                         if isinstance(data, list):
-                            for i in range(0, len(data), 10):  # Lotes más pequeños
+                            for i in range(0, len(data), 10):
                                 try:
                                     result = collection.insert_many(data[i:i+10], ordered=False)
                                     insertados += len(result.inserted_ids)
-                                    del result
-                                    gc.collect()
                                 except Exception as e:
                                     errores += len(data[i:i+10])
                                     print(f"Error en lote en {file}: {e}")
@@ -253,29 +253,30 @@ def crear_coleccion():
                             collection.insert_one(data)
                             insertados += 1
 
-                        del data  # liberar data
+                        del data
                         gc.collect()
-
                     except Exception as e:
                         errores += 1
                         print(f"Error en archivo {file}: {e}")
 
         mensaje = f"Proceso completado. Archivos insertados: {insertados}, con errores: {errores}"
-        return render_template('gestion/crear_coleccion.html',
-                               database=database,
-                               usuario=session['usuario'],
-                               version=VERSION_APP,
-                               creador=CREATOR_APP,
-                               success_message=mensaje)
+
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({
+                "mensaje": mensaje,
+                "insertados": insertados,
+                "errores": errores
+            })
+        else:
+            return render_template('gestion/crear_coleccion.html',
+                                   database=database,
+                                   usuario=session['usuario'],
+                                   version=VERSION_APP,
+                                   creador=CREATOR_APP,
+                                   success_message=mensaje)
 
     finally:
-        for root, dirs, files in os.walk(temp_dir, topdown=False):
-            for file in files:
-                os.remove(os.path.join(root, file))
-            for dir in dirs:
-                os.rmdir(os.path.join(root, dir))
-        os.rmdir(temp_dir)
-
+        shutil.rmtree(temp_dir, ignore_errors=True)
 
 @app.route('/ver-registros/<database>/<collection>')
 def ver_registros(database, collection):
