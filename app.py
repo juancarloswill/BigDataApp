@@ -237,7 +237,7 @@ def crear_coleccion():
             errores = 0
             BATCH_SIZE = 200
 
-            # Dentro del bloque donde procesas archivos JSON:
+            # Procesar cada archivo JSON
             for root, _, files in os.walk(temp_dir):
                 for file in files:
                     if file.endswith('.json'):
@@ -247,16 +247,17 @@ def crear_coleccion():
                                 json_data = json.load(f)
 
                                 if isinstance(json_data, list):
-                                    for i in range(0, len(json_data), 200):
+                                    for doc in json_data:
                                         try:
-                                            batch = json_data[i:i+200]
-                                            collection.insert_many(batch)
-                                            insertados += len(batch)
-                                            del batch  # libera lote actual
-                                            gc.collect()  # fuerza liberación
+                                            collection.insert_one(doc)
+                                            insertados += 1
                                         except Exception as e:
-                                            errores += len(json_data[i:i+200])
-                                            print(f"Error en insert_many del archivo {file}: {e}")
+                                            errores += 1
+                                            print(f"Error en documento del archivo {file}: {e}")
+                                        finally:
+                                            del doc
+                                            gc.collect()
+
                                 else:
                                     try:
                                         collection.insert_one(json_data)
@@ -265,7 +266,7 @@ def crear_coleccion():
                                         errores += 1
                                         print(f"Error en insert_one del archivo {file}: {e}")
 
-                            # Libera json_data de memoria después de usarlo
+                            # Liberar memoria por archivo
                             del json_data
                             gc.collect()
 
