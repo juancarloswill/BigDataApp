@@ -223,17 +223,18 @@ def crear_coleccion():
         collection = db[collection_name]
         
         # Procesar el archivo ZIP
+        # Procesar el archivo ZIP
         with zipfile.ZipFile(zip_file) as zip_ref:
             # Crear un directorio temporal para extraer los archivos
             temp_dir = os.path.join(os.path.dirname(__file__), 'temp')
             os.makedirs(temp_dir, exist_ok=True)
-            
+
             # Extraer los archivos
             zip_ref.extractall(temp_dir)
-            
-            # Procesar cada archivo JSON
+
             insertados = 0
             errores = 0
+            BATCH_SIZE = 200  # Tamaño de lote
 
             for root, _, files in os.walk(temp_dir):
                 for file in files:
@@ -244,34 +245,36 @@ def crear_coleccion():
                                 json_data = json.load(f)
 
                                 if isinstance(json_data, list):
-                                    # Insertar por lotes de 200
-                                    for i in range(0, len(json_data), 200):
+                                    # Insertar en lotes de 200 documentos
+                                    for i in range(0, len(json_data), BATCH_SIZE):
+                                        batch = json_data[i:i + BATCH_SIZE]
                                         try:
-                                            collection.insert_many(json_data[i:i+200])
-                                            insertados += len(json_data[i:i+200])
+                                            collection.insert_many(batch, ordered=False)
+                                            insertados += len(batch)
                                         except Exception as e:
-                                            errores += len(json_data[i:i+200])
-                                            print(f"Error en insert_many del archivo {file}: {e}")
+                                            errores += len(batch)
+                                            print(f"Error insertando lote desde archivo {file}: {e}")
                                 else:
                                     try:
                                         collection.insert_one(json_data)
                                         insertados += 1
                                     except Exception as e:
                                         errores += 1
-                                        print(f"Error en insert_one del archivo {file}: {e}")
-
+                                        print(f"Error insertando archivo {file}: {e}")
                         except Exception as e:
                             errores += 1
-                            print(f"Error abriendo o leyendo {file}: {e}")
-            
+                            print(f"Error leyendo archivo {file}: {e}")
+
+            print(f"Total documentos insertados: {insertados}")
+            print(f"Total documentos con error: {errores}")
+
             # Limpiar el directorio temporal
             for root, dirs, files in os.walk(temp_dir, topdown=False):
                 for file in files:
                     os.remove(os.path.join(root, file))
                 for dir in dirs:
                     os.rmdir(os.path.join(root, dir))
-            os.rmdir(temp_dir)
-        
+            os.rmdir(temp_dir)        
         return redirect(url_for('gestion_proyecto', database=database))
         
     except Exception as e:
