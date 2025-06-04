@@ -8,7 +8,9 @@ import json
 import re
 import gc
 import shutil
+import tempfile
 from elasticsearch import Elasticsearch
+from pymongo.errors import BulkWriteError
 
 app = Flask(__name__)
 app.secret_key = 'tu_clave_secreta_aqui'  # Cambia esto por una clave secreta segura
@@ -192,102 +194,72 @@ def crear_coleccion_form(database):
                         version=VERSION_APP,
                         creador=CREATOR_APP)
 
+# Ruta para crear colección desde ZIP
 @app.route('/crear-coleccion', methods=['POST'])
 def crear_coleccion():
-    if 'usuario' not in session:
-        return redirect(url_for('login'))
-    
+    database = request.form['database']
+    collection_name = request.form['collection_name']
+    zip_file = request.files['zip_file']
+
+    if not zip_file.filename.endswith('.zip'):
+        return "Solo se permiten archivos ZIP.", 400
+
+    temp_dir = tempfile.mkdtemp()
+    zip_path = os.path.join(temp_dir, zip_file.filename)
+    zip_file.save(zip_path)
+
     try:
-        database = request.form.get('database')
-        collection_name = request.form.get('collection_name')
-        zip_file = request.files.get('zip_file')
-        
-        if not all([database, collection_name, zip_file]):
-            return render_template('gestion/crear_coleccion.html',
-                                error_message='Todos los campos son requeridos',
-                                database=database,
-                                usuario=session['usuario'],
-                                version=VERSION_APP,
-                                creador=CREATOR_APP)
-        
-        # Conectar a MongoDB
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(temp_dir)
+
         client = connect_mongo()
-        if not client:
-            return render_template('gestion/crear_coleccion.html',
-                                error_message='Error de conexión con MongoDB',
-                                database=database,
-                                usuario=session['usuario'],
-                                version=VERSION_APP,
-                                creador=CREATOR_APP)
-        
-        # Crear la colección
         db = client[database]
         collection = db[collection_name]
-        
-        # Procesar el archivo ZIP
-        # Procesar el archivo ZIP
-        with zipfile.ZipFile(zip_file) as zip_ref:
-            # Crear un directorio temporal para extraer los archivos
-            temp_dir = os.path.join(os.path.dirname(__file__), 'temp')
-            os.makedirs(temp_dir, exist_ok=True)
 
-            # Extraer los archivos
-            zip_ref.extractall(temp_dir)          
+        insertados = 0
+        errores = 0
 
-           
-            insertados = 0
-            errores = 0
-            batch_size = 100
-
-            for root, _, files in os.walk(temp_dir):
-                for file in files:
-                    if file.endswith('.json'):
+        for root, dirs, files in os.walk(temp_dir):
+            for file in files:
+                if file.endswith('.json'):
+                    try:
                         file_path = os.path.join(root, file)
-                        try:
-                            with open(file_path, 'r', encoding='utf-8') as f:
-                                json_data = json.load(f)
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            data = json.load(f)
 
-                            if isinstance(json_data, list):
-                                for i in range(0, len(json_data), batch_size):
-                                    try:
-                                        batch = json_data[i:i + batch_size]
-                                        collection.insert_many(batch)
-                                        insertados += len(batch)
-                                    except Exception as e:
-                                        errores += len(batch)
-                                        print(f"Error en insert_many del archivo {file}: {e}")
-                                    finally:
-                                        del batch
-                                        gc.collect()
-                            else:
+                        if isinstance(data, list):
+                            for i in range(0, len(data), 200):
                                 try:
-                                    collection.insert_one(json_data)
-                                    insertados += 1
+                                    result = collection.insert_many(data[i:i+200], ordered=False)
+                                    insertados += len(result.inserted_ids)
                                 except Exception as e:
-                                    errores += 1
-                                    print(f"Error en insert_one del archivo {file}: {e}")
-                            del json_data
-                            gc.collect()
+                                    errores += len(data[i:i+200])
+                                    print(f"Error en lote de lista en {file}: {str(e)}")
+                        else:
+                            collection.insert_one(data)
+                            insertados += 1
 
-                        except Exception as e:
-                            errores += 1
-                            print(f"Error abriendo o leyendo {file}: {e}")
+                        gc.collect()
+                    except Exception as e:
+                        errores += 1
+                        print(f"Error en archivo {file}: {str(e)}")
 
-            # Limpiar carpeta temporal
-            if os.path.exists(temp_dir):
-                shutil.rmtree(temp_dir)
-        return redirect(url_for('gestion_proyecto', database=database))
-        
-    except Exception as e:
+        mensaje = f"Proceso completado. Archivos insertados: {insertados}, con errores: {errores}"
         return render_template('gestion/crear_coleccion.html',
-                            error_message=f'Error al crear la colección: {str(e)}',
-                            database=database,
-                            usuario=session['usuario'],
-                            version=VERSION_APP,
-                            creador=CREATOR_APP)
+                               database=database,
+                               usuario=session['usuario'],
+                               version=VERSION_APP,
+                               creador=CREATOR_APP,
+                               success_message=mensaje)
+
     finally:
-        if 'client' in locals():
-            client.close()
+        for root, dirs, files in os.walk(temp_dir, topdown=False):
+            for file in files:
+                os.remove(os.path.join(root, file))
+            for dir in dirs:
+                os.rmdir(os.path.join(root, dir))
+        os.rmdir(temp_dir)
+
 
 @app.route('/ver-registros/<database>/<collection>')
 def ver_registros(database, collection):
