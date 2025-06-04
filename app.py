@@ -568,6 +568,9 @@ def subir_zip():
     database = request.form['database']
     collection_name = request.form['collection_name']
 
+    temp_root = "temp_uploads"
+    os.makedirs(temp_root, exist_ok=True)
+
     temp_dir = tempfile.mkdtemp(dir=temp_root)
     zip_path = os.path.join(temp_dir, zip_file.filename)
     zip_file.save(zip_path)
@@ -579,7 +582,9 @@ def subir_zip():
     for root, _, files in os.walk(temp_dir):
         for f in files:
             if f.lower().endswith('.json'):
-                archivos_json.append(os.path.relpath(os.path.join(root, f), temp_dir))
+                rel_path = os.path.relpath(os.path.join(root, f), temp_dir)
+                archivos_json.append(rel_path)
+
     archivos_json.sort()
 
     session['zip_dir'] = temp_dir
@@ -608,8 +613,12 @@ def procesar_lote():
 
     insertados = 0
     for nombre in lote:
+        file_path = os.path.join(zip_dir, nombre)
+        if not os.path.exists(file_path):
+            print(f"Archivo no encontrado: {file_path}")
+            continue
         try:
-            with open(os.path.join(zip_dir, nombre), 'r', encoding='utf-8') as f:
+            with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 if isinstance(data, list):
                     collection.insert_many(data)
@@ -624,11 +633,11 @@ def procesar_lote():
     terminado = session['actual'] >= len(archivos)
 
     if terminado:
-        shutil.rmtree(zip_dir)
+        if os.path.exists(zip_dir):
+            shutil.rmtree(zip_dir, ignore_errors=True)
         session.clear()
 
     return jsonify({"insertados": insertados, "terminado": terminado})
-
 
 
 
