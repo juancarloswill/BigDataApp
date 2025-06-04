@@ -7,6 +7,7 @@ from datetime import datetime
 import json
 import re
 import gc
+import shutil
 from elasticsearch import Elasticsearch
 
 app = Flask(__name__)
@@ -231,13 +232,13 @@ def crear_coleccion():
             os.makedirs(temp_dir, exist_ok=True)
 
             # Extraer los archivos
-            zip_ref.extractall(temp_dir)
+            zip_ref.extractall(temp_dir)          
 
+           
             insertados = 0
             errores = 0
-            BATCH_SIZE = 200
+            batch_size = 100
 
-            # Procesar cada archivo JSON
             for root, _, files in os.walk(temp_dir):
                 for file in files:
                     if file.endswith('.json'):
@@ -246,27 +247,25 @@ def crear_coleccion():
                             with open(file_path, 'r', encoding='utf-8') as f:
                                 json_data = json.load(f)
 
-                                if isinstance(json_data, list):
-                                    for doc in json_data:
-                                        try:
-                                            collection.insert_one(doc)
-                                            insertados += 1
-                                        except Exception as e:
-                                            errores += 1
-                                            print(f"Error en documento del archivo {file}: {e}")
-                                        finally:
-                                            del doc
-                                            gc.collect()
-
-                                else:
+                            if isinstance(json_data, list):
+                                for i in range(0, len(json_data), batch_size):
                                     try:
-                                        collection.insert_one(json_data)
-                                        insertados += 1
+                                        batch = json_data[i:i + batch_size]
+                                        collection.insert_many(batch)
+                                        insertados += len(batch)
                                     except Exception as e:
-                                        errores += 1
-                                        print(f"Error en insert_one del archivo {file}: {e}")
-
-                            # Liberar memoria por archivo
+                                        errores += len(batch)
+                                        print(f"Error en insert_many del archivo {file}: {e}")
+                                    finally:
+                                        del batch
+                                        gc.collect()
+                            else:
+                                try:
+                                    collection.insert_one(json_data)
+                                    insertados += 1
+                                except Exception as e:
+                                    errores += 1
+                                    print(f"Error en insert_one del archivo {file}: {e}")
                             del json_data
                             gc.collect()
 
@@ -274,13 +273,9 @@ def crear_coleccion():
                             errores += 1
                             print(f"Error abriendo o leyendo {file}: {e}")
 
-            # Limpiar el directorio temporal
-            for root, dirs, files in os.walk(temp_dir, topdown=False):
-                for file in files:
-                    os.remove(os.path.join(root, file))
-                for dir in dirs:
-                    os.rmdir(os.path.join(root, dir))
-            os.rmdir(temp_dir)        
+            # Limpiar carpeta temporal
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
         return redirect(url_for('gestion_proyecto', database=database))
         
     except Exception as e:
