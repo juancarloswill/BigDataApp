@@ -575,7 +575,11 @@ def subir_zip():
     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
         zip_ref.extractall(temp_dir)
 
-    archivos_json = [f for f in os.listdir(temp_dir) if f.endswith('.json')]
+    archivos_json = []
+    for root, _, files in os.walk(temp_dir):
+        for f in files:
+            if f.lower().endswith('.json'):
+                archivos_json.append(os.path.relpath(os.path.join(root, f), temp_dir))
     archivos_json.sort()
 
     session['zip_dir'] = temp_dir
