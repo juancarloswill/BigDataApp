@@ -577,6 +577,7 @@ def buscador():
             fecha_hasta = request.form.get('fecha_hasta') or datetime.now().strftime("%Y-%m-%d")
             categorias = request.form.getlist('categoria')
             clasificaciones = request.form.getlist('clasificacion')
+            fechas = request.form.getlist('fecha')  # <- Capturar años seleccionados
 
             query = {
                 "query": {
@@ -622,7 +623,7 @@ def buscador():
                     "match": {search_type: search_text}
                 })
 
-            # Rango de fechas
+            # Rango global de fechas
             query["query"]["bool"]["filter"].append({
                 "range": {
                     "fecha": {
@@ -633,7 +634,20 @@ def buscador():
                 }
             })
 
-            # Filtros
+            # Filtros de año seleccionados
+            if fechas:
+                for año in fechas:
+                    query["query"]["bool"]["filter"].append({
+                        "range": {
+                            "fecha": {
+                                "gte": f"{año}-01-01",
+                                "lte": f"{año}-12-31",
+                                "format": "yyyy-MM-dd"
+                            }
+                        }
+                    })
+
+            # Filtros de texto
             if categorias:
                 query["query"]["bool"]["filter"].append({"terms": {"categoria": categorias}})
             if clasificaciones:
