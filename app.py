@@ -612,16 +612,29 @@ def buscador():
                     }
                 }
 
-            # Campo de búsqueda
             if search_type == 'texto':
                 query["query"]["bool"]["must"].append({
                     "match_phrase": {
-                        "texto": {"query": search_text, "slop": 1}
+                        "texto": {
+                            "query": search_text,
+                            "slop": 1
+                        }
                     }
                 })
-            else:
+            elif search_type in ['titulo', 'autor']:
                 query["query"]["bool"]["must"].append({
-                    "match": {search_type: search_text}
+                    "match_phrase": {
+                        search_type: {
+                            "query": search_text,
+                            "slop": 1
+                        }
+                    }
+                })
+            elif search_type == 'categoria':
+                query["query"]["bool"]["must"].append({
+                    "term": {
+                        "categoria.keyword": search_text  # Asegúrate que en el mapeo exista un subcampo `.keyword`
+                    }
                 })
 
             # Rango global de fechas
