@@ -580,36 +580,37 @@ def buscador():
             fechas = request.form.getlist('fecha')  # <- Capturar años seleccionados
 
             query = {
-                "query": {
-                    "bool": {
-                        "must": [],
-                        "filter": []
-                    }
-                },
-                "aggs": {
-                    "categoria": {
-                        "terms": {
-                            "field": "categoria",
-                            "size": 10,
-                            "order": {"_key": "asc"}
+                    "size": 100,  # 🔥 Mostrar hasta 100 resultados
+                    "query": {
+                        "bool": {
+                            "must": [],
+                            "filter": []
                         }
                     },
-                    "clasificacion": {
-                        "terms": {
-                            "field": "clasificacion",
-                            "size": 10,
-                            "order": {"_key": "asc"}
-                        }
-                    },
-                    "fecha": {
-                        "date_histogram": {
-                            "field": "fecha",
-                            "calendar_interval": "year",
-                            "format": "yyyy"
+                    "aggs": {
+                        "categoria": {
+                            "terms": {
+                                "field": "categoria",
+                                "size": 100,
+                                "order": {"_key": "asc"}
+                            }
+                        },
+                        "clasificacion": {
+                            "terms": {
+                                "field": "clasificacion",
+                                "size": 100,
+                                "order": {"_key": "asc"}
+                            }
+                        },
+                        "fecha": {
+                            "date_histogram": {
+                                "field": "fecha",
+                                "calendar_interval": "year",
+                                "format": "yyyy"
+                            }
                         }
                     }
                 }
-            }
 
             # Campo de búsqueda
             if search_type == 'texto':
