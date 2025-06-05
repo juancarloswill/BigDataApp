@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +8,6 @@
     <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/landingPage.css') }}" rel="stylesheet">
 </head>
-
 <body>
     <header class="header">
         <div class="container">
@@ -18,15 +16,16 @@
                 <nav>
                     <ul class="nav">
                         <li class="nav-item"><a class="nav-link" href="/">Inicio</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/buscador">Buscador</a></li>
+                        <li class="nav-item"><a class="nav-link active" href="/buscador"><b>Buscador</b></a></li>
                         <li class="nav-item"><a class="nav-link" href="/about">Acerca de</a></li>
                         <li class="nav-item"><a class="nav-link" href="/login">Ingresar</a></li>
-                        <li class="nav-item"><a class="nav-link active" href="/contacto"><b>Contacto</b></a></li>
+                        <li class="nav-item"><a class="nav-link" href="/contacto">Contacto</a></li>
                     </ul>
                 </nav>
             </div>
         </div>
     </header>
+
     <div class="container mt-4">
         <form id="searchForm" method="POST" action="{{ url_for('buscador') }}">
             <div class="row mb-3">
@@ -36,8 +35,7 @@
                         <option value="texto" {% if search_type=='texto' %}selected{% endif %}>Texto</option>
                         <option value="titulo" {% if search_type=='titulo' %}selected{% endif %}>Título</option>
                         <option value="autor" {% if search_type=='autor' %}selected{% endif %}>Autor</option>
-                        <option value="categoria" {% if search_type=='categoria' %}selected{% endif %}>Categoría
-                        </option>
+                        <option value="categoria" {% if search_type=='categoria' %}selected{% endif %}>Categoría</option>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -54,34 +52,36 @@
                 </div>
             </div>
 
-            <div class="row mb-3">
-                <div class="col-12 text-end">
-                    <button type="submit" class="btn btn-primary">Buscar</button>
-                </div>
-            </div>
-
             <div class="row justify-content-around">
                 {% if aggregations %}
                 {% for agg_name, agg_data in aggregations.items() %}
                 <div class="col-md-4 filtro-bloque">
                     <h5>{{ agg_name|capitalize }}</h5>
                     {% for bucket in agg_data.buckets %}
-                    {% if bucket.doc_count > 0 %}
-                    <div class="form-check">
-                        {% if agg_name == 'fecha' %}
-                        <input class="form-check-input" type="checkbox" name="fecha" value="{{ bucket.key_as_string }}" {% if bucket.key_as_string in request.form.getlist('fecha') %}checked{% endif %}>
-                        <label class="form-check-label">{{ bucket.key_as_string }} ({{ bucket.doc_count }})</label>
-                        {% else %}
-                        <input class="form-check-input" type="checkbox" name="{{ agg_name }}" value="{{ bucket.key }}"
-                            {% if bucket.key in request.form.getlist(agg_name) %}checked{% endif %}>
-                        <label class="form-check-label">{{ bucket.key }} ({{ bucket.doc_count }})</label>
+                        {% if bucket.doc_count > 0 %}
+                        <div class="form-check">
+                            {% if agg_name == 'fecha' %}
+                                <input class="form-check-input" type="checkbox" name="fecha" value="{{ bucket.key_as_string }}"
+                                       {% if bucket.key_as_string in request.form.getlist('fecha') %}checked{% endif %}>
+                                <label class="form-check-label">{{ bucket.key_as_string }} ({{ bucket.doc_count }})</label>
+                            {% else %}
+                                <input class="form-check-input" type="checkbox" name="{{ agg_name }}" value="{{ bucket.key }}"
+                                       {% if bucket.key in request.form.getlist(agg_name) %}checked{% endif %}>
+                                <label class="form-check-label">{{ bucket.key }} ({{ bucket.doc_count }})</label>
+                            {% endif %}
+                        </div>
                         {% endif %}
-                    </div>
-                    {% endif %}
                     {% endfor %}
                 </div>
                 {% endfor %}
                 {% endif %}
+            </div>
+
+            <!-- Botón para aplicar filtros -->
+            <div class="row mb-3 mt-3">
+                <div class="col-12 text-end">
+                    <button type="submit" class="btn btn-info">Aplicar filtros</button>
+                </div>
             </div>
         </form>
 
@@ -122,11 +122,8 @@
                 }
             });
 
-            $('.form-check-input').on('change', function () {
-                $('#searchForm').submit();
-            });
+            // Ya no enviamos formulario automático al hacer clic en filtros
         });
     </script>
 </body>
-
 </html>
