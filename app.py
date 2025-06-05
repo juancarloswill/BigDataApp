@@ -572,72 +572,76 @@ def buscador():
     if request.method == 'POST':
         try:
             search_type = request.form.get('search_type', 'texto')
-            search_text = request.form.get('search_text', '')
+            search_text = request.form.get('search_text', '').strip()
             fecha_desde = request.form.get('fecha_desde') or "1500-01-01"
             fecha_hasta = request.form.get('fecha_hasta') or datetime.now().strftime("%Y-%m-%d")
+
             categorias = request.form.getlist('categoria')
             clasificaciones = request.form.getlist('clasificacion')
-            fechas = request.form.getlist('fecha')  # <- Capturar años seleccionados
+            fechas = request.form.getlist('fecha')
 
             query = {
-                    "size": 100,  # 🔥 Mostrar hasta 100 resultados
-                    "query": {
-                        "bool": {
-                            "must": [],
-                            "filter": []
+                "size": 100,  # Aquí se define el límite de registros devueltos
+                "query": {
+                    "bool": {
+                        "must": [],
+                        "filter": []
+                    }
+                },
+                "aggs": {
+                    "categoria": {
+                        "terms": {
+                            "field": "categoria",
+                            "size": 100,
+                            "order": {"_key": "asc"}
                         }
                     },
-                    "aggs": {
-                        "categoria": {
-                            "terms": {
-                                "field": "categoria",
-                                "size": 100,
-                                "order": {"_key": "asc"}
-                            }
-                        },
-                        "clasificacion": {
-                            "terms": {
-                                "field": "clasificacion",
-                                "size": 100,
-                                "order": {"_key": "asc"}
-                            }
-                        },
-                        "fecha": {
-                            "date_histogram": {
-                                "field": "fecha",
-                                "calendar_interval": "year",
-                                "format": "yyyy"
-                            }
+                    "clasificacion": {
+                        "terms": {
+                            "field": "clasificacion",
+                            "size": 100,
+                            "order": {"_key": "asc"}
+                        }
+                    },
+                    "fecha": {
+                        "date_histogram": {
+                            "field": "fecha",
+                            "calendar_interval": "year",
+                            "format": "yyyy"
                         }
                     }
                 }
+            }
 
-            if search_type == 'texto':
-                query["query"]["bool"]["must"].append({
-                    "match_phrase": {
-                        "texto": {
-                            "query": search_text,
-                            "slop": 1
+            # Búsqueda según tipo
+            if search_text:
+                if search_type == 'texto':
+                    query["query"]["bool"]["must"].append({
+                        "match_phrase": {
+                            "texto": {
+                                "query": search_text,
+                                "slop": 1
+                            }
                         }
-                    }
-                })
-            elif search_type in ['titulo', 'autor']:
-                query["query"]["bool"]["must"].append({
-                    "match_phrase": {
-                        search_type: {
-                            "query": search_text,
-                            "slop": 1
+                    })
+                elif search_type in ['titulo', 'autor']:
+                    query["query"]["bool"]["must"].append({
+                        "match": {
+                            search_type: {
+                                "query": search_text
+                            }
                         }
-                    }
-                })
-            elif search_type == 'categoria':
-                query["query"]["bool"]["must"].append({
-                    "term": {
-                        "categoria.keyword": search_text  # Asegúrate que en el mapeo exista un subcampo `.keyword`
-                    }
-                })
+                    })
+                else:
+                    query["query"]["bool"]["must"].append({
+                        "match": {
+                            search_type: {
+                                "query": search_text
+                            }
+                        }
+                    })
 
-            # Rango global de fechas
+            # Filtro por rango de fechas
             query["query"]["bool"]["filter"].append({
                 "range": {
                     "fecha": {
@@ -648,31 +652,19 @@ def buscador():
                 }
             })
 
-            # Filtros de año seleccionados
-            if fechas:
-                should_ranges = []
-                for año in fechas:
-                    should_ranges.append({
-                        "range": {
-                            "fecha": {
-                                "gte": f"{año}-01-01",
-                                "lte": f"{año}-12-31",
-                                "format": "yyyy-MM-dd"
-                            }
-                        }
-                    })
-                query["query"]["bool"]["filter"].append({
-                    "bool": {
-                        "should": should_ranges
-                    }
-                })
-
-            # Filtros de texto
+            # Filtros por categoría, clasificación y fechas seleccionadas
             if categorias:
                 query["query"]["bool"]["filter"].append({"terms": {"categoria": categorias}})
             if clasificaciones:
                 query["query"]["bool"]["filter"].append({"terms": {"clasificacion": clasificaciones}})
+            if fechas:
+                query["query"]["bool"]["filter"].append({
+                    "terms": {
+                        "fecha": fechas
+                    }
+                })
 
+            # Ejecutar búsqueda
             response = client.search(index=INDEX_NAME, body=query)
             hits = response['hits']['hits']
             aggregations = response.get('aggregations', {})
