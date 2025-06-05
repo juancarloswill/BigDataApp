@@ -41,7 +41,7 @@
                 </div>
             </div>
 
-            <div class="row">
+            <div class="row justify-content-around">
                 {% if aggregations %}
                 {% for agg_name, agg_data in aggregations.items() %}
                 <div class="col-md-4 filtro-bloque">
@@ -49,10 +49,10 @@
                     {% for bucket in agg_data.buckets %}
                         {% if bucket.doc_count > 0 %}
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="{{ agg_name }}" value="{{ bucket.key_as_string }}"
+                            <input class="form-check-input" type="checkbox" name="{{ agg_name }}" value="{{ bucket.key }}"
                                 {% if bucket.key in request.form.getlist(agg_name) %}checked{% endif %}>
                             <label class="form-check-label">
-                                {{ bucket.key_as_string }} ({{ bucket.doc_count }})
+                                {{ bucket.key }} ({{ bucket.doc_count }})
                             </label>
                         </div>
                         {% endif %}

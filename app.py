@@ -571,8 +571,8 @@ def elastic_eliminar_documento():
 def buscador():
     if request.method == 'POST':
         try:
-            search_type = request.form.get('search_type')
-            search_text = request.form.get('search_text')
+            search_type = request.form.get('search_type', 'texto')
+            search_text = request.form.get('search_text', '')
             fecha_desde = request.form.get('fecha_desde') or "1500-01-01"
             fecha_hasta = request.form.get('fecha_hasta') or datetime.now().strftime("%Y-%m-%d")
             categorias = request.form.getlist('categoria')
@@ -610,7 +610,7 @@ def buscador():
                 }
             }
 
-            # Búsqueda por campo
+            # Campo de búsqueda
             if search_type == 'texto':
                 query["query"]["bool"]["must"].append({
                     "match_phrase": {
@@ -633,7 +633,7 @@ def buscador():
                 }
             })
 
-            # Filtros por checkbox
+            # Filtros
             if categorias:
                 query["query"]["bool"]["filter"].append({"terms": {"categoria": categorias}})
             if clasificaciones:
@@ -651,30 +651,32 @@ def buscador():
                                    fecha_desde=fecha_desde,
                                    fecha_hasta=fecha_hasta,
                                    version=VERSION_APP,
-                                   creador=CREATOR_APP,
+                                   creador=CREADOR_APP,
                                    query=query)
         except Exception as e:
             return render_template('buscador.html',
                                    error_message=f'Error en la búsqueda: {str(e)}',
                                    version=VERSION_APP,
-                                   creador=CREATOR_APP)
-    # GET
+                                   creador=CREADOR_APP)
+
+    # GET default
     return render_template('buscador.html',
-                       version=VERSION_APP,
-                       creador=CREATOR_APP,
-                       aggregations={},
-                       hits=[],
-                       search_text="",
-                       search_type="texto",
-                       fecha_desde="1500-01-01",
-                       fecha_hasta=datetime.now().strftime("%Y-%m-%d"))
+                           version=VERSION_APP,
+                           creador=CREADOR_APP,
+                           aggregations={},
+                           hits=[],
+                           search_text='',
+                           search_type='texto',
+                           fecha_desde='1500-01-01',
+                           fecha_hasta=datetime.now().strftime('%Y-%m-%d'))
+
 
 
 @app.route('/api/search', methods=['POST'])
 def search():
     try:
         data = request.get_json()
-        index_name = data.get('index', 'ucentral_test')
+        index_name = data.get('index', 'ucentral_juan')
         query = data.get('query')
 
         # Ejecutar la búsqueda en Elasticsearch
