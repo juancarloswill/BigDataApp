@@ -651,18 +651,18 @@ def buscador():
                                    fecha_desde=fecha_desde,
                                    fecha_hasta=fecha_hasta,
                                    version=VERSION_APP,
-                                   creador=CREADOR_APP,
+                                   creador=CREATOR_APP,
                                    query=query)
         except Exception as e:
             return render_template('buscador.html',
                                    error_message=f'Error en la búsqueda: {str(e)}',
                                    version=VERSION_APP,
-                                   creador=CREADOR_APP)
+                                   creador=CREATOR_APP)
 
     # GET default
     return render_template('buscador.html',
                            version=VERSION_APP,
-                           creador=CREADOR_APP,
+                           creador=CREATOR_APP,
                            aggregations={},
                            hits=[],
                            search_text='',
