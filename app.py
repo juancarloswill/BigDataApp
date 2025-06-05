@@ -636,8 +636,9 @@ def buscador():
 
             # Filtros de año seleccionados
             if fechas:
+                should_ranges = []
                 for año in fechas:
-                    query["query"]["bool"]["filter"].append({
+                    should_ranges.append({
                         "range": {
                             "fecha": {
                                 "gte": f"{año}-01-01",
@@ -646,6 +647,11 @@ def buscador():
                             }
                         }
                     })
+                query["query"]["bool"]["filter"].append({
+                    "bool": {
+                        "should": should_ranges
+                    }
+                })
 
             # Filtros de texto
             if categorias:
