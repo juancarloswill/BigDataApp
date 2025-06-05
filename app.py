@@ -660,8 +660,14 @@ def buscador():
                                    creador=CREATOR_APP)
     # GET
     return render_template('buscador.html',
-                           version=VERSION_APP,
-                           creador=CREATOR_APP)
+                       version=VERSION_APP,
+                       creador=CREATOR_APP,
+                       aggregations={},
+                       hits=[],
+                       search_text="",
+                       search_type="texto",
+                       fecha_desde="1500-01-01",
+                       fecha_hasta=datetime.now().strftime("%Y-%m-%d"))
 
 
 @app.route('/api/search', methods=['POST'])
