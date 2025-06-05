@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/landingPage.css') }}" rel="stylesheet">
 </head>
+
 <body>
     <div class="container mt-4">
         <form id="searchForm" method="POST" action="{{ url_for('buscador') }}">
@@ -18,7 +20,8 @@
                         <option value="texto" {% if search_type=='texto' %}selected{% endif %}>Texto</option>
                         <option value="titulo" {% if search_type=='titulo' %}selected{% endif %}>Título</option>
                         <option value="autor" {% if search_type=='autor' %}selected{% endif %}>Autor</option>
-                        <option value="categoria" {% if search_type=='categoria' %}selected{% endif %}>Categoría</option>
+                        <option value="categoria" {% if search_type=='categoria' %}selected{% endif %}>Categoría
+                        </option>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -47,15 +50,14 @@
                 <div class="col-md-4 filtro-bloque">
                     <h5>{{ agg_name|capitalize }}</h5>
                     {% for bucket in agg_data.buckets %}
-                        {% if bucket.doc_count > 0 %}
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="{{ agg_name }}" value="{{ bucket.key }}"
-                                {% if bucket.key in request.form.getlist(agg_name) %}checked{% endif %}>
-                            <label class="form-check-label">
-                                {{ bucket.key }} ({{ bucket.doc_count }})
-                            </label>
-                        </div>
-                        {% endif %}
+                    {% if bucket.doc_count > 0 %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="fecha" value="{{ bucket.key_as_string }}">
+                        <label class="form-check-label">
+                            {{ bucket.key_as_string }} ({{ bucket.doc_count }})
+                        </label>
+                    </div>
+                    {% endif %}
                     {% endfor %}
                 </div>
                 {% endfor %}
@@ -93,17 +95,18 @@
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             $('#resultadosTable').DataTable({
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'
                 }
             });
 
-            $('.form-check-input').on('change', function() {
+            $('.form-check-input').on('change', function () {
                 $('#searchForm').submit();
             });
         });
     </script>
 </body>
+
 </html>
